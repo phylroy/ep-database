@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Data;
+using System.Data.SQLite;
 using System.Text.RegularExpressions;
 namespace EnergyPlus
 {
@@ -16,6 +17,9 @@ namespace EnergyPlus
         string[] FileAsString;
         private EPIDD()
         {
+            
+
+
             //Read file into a string. 
             FileAsString = File.ReadAllLines(@"C:\EnergyPlusV5-0-0\energy+.idd");
 
@@ -26,6 +30,9 @@ namespace EnergyPlus
             column.AutoIncrement = true; column.Unique = true;
             objectsTable.Columns.Add("object_name", typeof(string));
             objectsTable.Columns.Add("group", typeof(string));
+
+
+
 
             //Create object Switches Table.
             DataTable objectsSwitchesTable = IDD.Tables.Add("object_switches");
@@ -183,6 +190,10 @@ namespace EnergyPlus
                    }
                }
            }
+        }
+        public void CreateReferences() 
+        {
+ 
         }
         public void writeIDDXML()
         {
