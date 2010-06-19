@@ -144,10 +144,6 @@ namespace EnergyPlus
 
             //
 
-
-
-
-
             foreach (DataRow objectRow in objects.Rows)
             {
                 DataRow[] objectSwitchRows = objectRow.GetChildRows("objectSwitches");
