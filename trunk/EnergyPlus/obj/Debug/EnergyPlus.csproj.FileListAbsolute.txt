@@ -13,3 +13,8 @@ C:\Users\plopez\Documents\Visual Studio 2008\Projects\ep-database\EnergyPlus\obj
 C:\Users\plopez\Documents\Visual Studio 2008\Projects\ep-database\EnergyPlus\bin\Debug\EnergyPlus.exe
 C:\Users\plopez\Documents\Visual Studio 2008\Projects\ep-database\EnergyPlus\bin\Debug\EnergyPlus.pdb
 C:\Users\plopez\Documents\Visual Studio 2008\Projects\ep-database\EnergyPlus\obj\Debug\ResolveAssemblyReference.cache
+E:\ep-database\EnergyPlus\obj\Debug\EnergyPlus.exe
+E:\ep-database\EnergyPlus\obj\Debug\EnergyPlus.pdb
+E:\ep-database\EnergyPlus\obj\Debug\ResolveAssemblyReference.cache
+E:\ep-database\EnergyPlus\bin\Debug\EnergyPlus.exe
+E:\ep-database\EnergyPlus\bin\Debug\EnergyPlus.pdb

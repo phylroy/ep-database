@@ -4,8 +4,8 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Data;
-using System.Data.SQLite;
 using System.Text.RegularExpressions;
+using System.Reflection;
 namespace EnergyPlus
 {
     class EPIDD
@@ -15,11 +15,52 @@ namespace EnergyPlus
 
         public DataSet IDD;
         string[] FileAsString;
+
+        public DataTable ConvertToDataTable<T>(IEnumerable<T> varlist)
+        {
+            DataTable dtReturn = new DataTable();
+
+            // column names   
+            PropertyInfo[] oProps = null;
+
+            if (varlist == null) return dtReturn;
+
+            foreach (T rec in varlist)
+            {
+                // Use reflection to get property names, to create table, Only first time, others will follow   
+                if (oProps == null)
+                {
+                    oProps = ((Type)rec.GetType()).GetProperties();
+                    foreach (PropertyInfo pi in oProps)
+                    {
+                        Type colType = pi.PropertyType;
+
+                        if ((colType.IsGenericType) && (colType.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                        {
+                            colType = colType.GetGenericArguments()[0];
+                        }
+
+                        dtReturn.Columns.Add(new DataColumn(pi.Name, colType));
+                    }
+                }
+
+                DataRow dr = dtReturn.NewRow();
+
+                foreach (PropertyInfo pi in oProps)
+                {
+                    dr[pi.Name] = pi.GetValue(rec, null) == null ? DBNull.Value : pi.GetValue
+                    (rec, null);
+                }
+
+                dtReturn.Rows.Add(dr);
+            }
+            return dtReturn;
+        }  
+
+
         private EPIDD()
         {
             
-
-
             //Read file into a string. 
             FileAsString = File.ReadAllLines(@"C:\EnergyPlusV5-0-0\energy+.idd");
 
@@ -30,9 +71,6 @@ namespace EnergyPlus
             column.AutoIncrement = true; column.Unique = true;
             objectsTable.Columns.Add("object_name", typeof(string));
             objectsTable.Columns.Add("group", typeof(string));
-
-
-
 
             //Create object Switches Table.
             DataTable objectsSwitchesTable = IDD.Tables.Add("object_switches");
@@ -195,6 +233,58 @@ namespace EnergyPlus
         {
  
         }
+
+
+        public List<string> GetChoices(int object_id, int field_id, int switch_id)
+        {
+
+            //Create the datatables for each IDD table for easier access. 
+            DataTable objects = IDD.Tables["objects"];
+            DataTable objects_switches = IDD.Tables["object_switches"];
+            DataTable objects_fields = IDD.Tables["fields"];
+            DataTable objects_fields_switches = IDD.Tables["field_switches"];
+            //iterate through object database
+
+
+            var fieldquery =
+            from object1 in objects.AsEnumerable()
+            join object_field in objects_fields.AsEnumerable()
+            on object1.Field<Int32>("object_id") equals
+            object_field.Field<Int32>("object_id")
+            select new
+            {
+                object_name =
+                object1.Field<String>("object_name"),
+                object_id =
+                object1.Field<Int32>("object_id"),
+                field_name =
+                object_field.Field<String>("field_name"),
+                field_id =
+                object_field.Field<Int32>("field_id")
+            };
+            DataTable orderTable2 = ConvertToDataTable(fieldquery);
+            var fieldquery2 =
+            from object1 in orderTable2.AsEnumerable()
+            join object_field_switch in objects_fields_switches.AsEnumerable()
+            on object1.Field<Int32>("field_id") equals
+            object_field_switch.Field<Int32>("field_id")
+            where
+             object1.Field<Int32>("object_id") == object_id &&
+             object1.Field<Int32>("field_id") == field_id &&
+             object1.Field<Int32>("switch_id") == switch_id &&
+             object_field_switch.Field<String>("field_switch") == @"\key"
+            select
+                object_field_switch.Field<String>("field_switch_value");
+
+            List<string> slChoices = new List<string>();
+            foreach (var choice in fieldquery2) {
+                slChoices.Add(choice.ToString());
+            }
+            return slChoices;
+        }
+
+
+
         public void writeIDDXML()
         {
             foreach (DataTable table in IDD.Tables)
