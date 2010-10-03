@@ -12,6 +12,7 @@ namespace EnergyPlus
         {
             EPIDF epidf = new EPIDF();
             epidf.epidd.writeIDDXML();
+            epidf.ReadIDFFile(@"C:\EnergyPlusV5-0-0\ExampleFiles\BenchmarkOutpatientNew_USA_IL_CHICAGO-OHARE.idf");
 
         }
     }

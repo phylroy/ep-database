@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Data;
-using System.Data.SQLite;
 using System.Text.RegularExpressions;
 using System.Reflection;
 
@@ -14,7 +13,7 @@ namespace EnergyPlus
     class EPIDF
     {
         public EPIDD epidd;
-
+        public DataSet idfDataSet;
 
         public DataTable ConvertToDataTable<T>(IEnumerable<T> varlist)
         {
@@ -55,100 +54,33 @@ namespace EnergyPlus
                 dtReturn.Rows.Add(dr);
             }
             return dtReturn;
-        }  
+        }
 
         public EPIDF()
         {
 
-
-
-
-
-
-
-
+            //Create a IDD object instance and read in the IDD file to create object and field switches.
             epidd = EPIDD.GetInstance();
-            DataSet idfDataSet = new DataSet();
-            //iterate through object database
+            //Create a blank dataset for the idf datatables. 
+            idfDataSet = new DataSet();
+            //Create the datatables for each IDD table for easier access. 
             DataTable objects = epidd.IDD.Tables["objects"];
             DataTable objects_switches = epidd.IDD.Tables["object_switches"];
             DataTable objects_fields = epidd.IDD.Tables["fields"];
             DataTable objects_fields_switches = epidd.IDD.Tables["field_switches"];
-
-            var query =
-            from object1 in objects.AsEnumerable()
-            join object_switch in objects_switches.AsEnumerable()
-            on object1.Field<Int32>("object_id") equals
-            object_switch.Field<Int32>("object_id")
-            where object_switch.Field<String>("object_switch") == @"\unique-object"
-            select new 
-            {
-            ObjectName =
-            object1.Field<String>("object_name"),
-            ObjectID =
-            object1.Field<Int32>("object_ID"),
-            ObjectSwitch =
-            object_switch.Field<String>("object_switch"),
-            ObjectSwitchValue =
-            object_switch.Field<String>("object_switch_value")
-            };
-
-            DataTable orderTable = ConvertToDataTable(query);  
-
-            var fieldquery =
-            from object1 in objects.AsEnumerable()
-            join object_field in objects_fields.AsEnumerable()
-            on object1.Field<Int32>("object_id") equals
-            object_field.Field<Int32>("object_id")
-            select new
-            {
+            //List<string> test = epidd.GetChoices(1, 1, 1);
 
 
 
-                object_name =
-                object1.Field<String>("object_name"),
-                object_id =
-                object1.Field<Int32>("object_id"),
-                field_name =
-                object_field.Field<String>("field_name"),
-                field_id =
-                object_field.Field<Int32>("field_id")
-            };
-            DataTable orderTable2 = ConvertToDataTable(fieldquery);
-
-            var fieldquery2 =
-            from object1 in orderTable2.AsEnumerable()
-            join object_field_switch in objects_fields_switches.AsEnumerable()
-            on object1.Field<Int32>("field_id") equals
-            object_field_switch.Field<Int32>("field_id")
-            select new
-            {
-                object_name =
-                object1.Field<String>("object_name"),
-                object_id =
-                object1.Field<Int32>("object_id"),
-                field_name =
-                object1.Field<String>("field_name"),
-                field_id =
-                object1.Field<Int32>("field_id"),
-                switch_id = 
-                object_field_switch.Field<Int32>("switch_id"),
-                field_switch =
-                object_field_switch.Field<String>("field_switch"),
-                field_switch_value =
-                object_field_switch.Field<String>("field_switch_value"),
-            };
-
-            DataTable orderTable3 = ConvertToDataTable(fieldquery2);
-
-
-            //
+            //Create DataStructure to hold IDF file. 
 
             foreach (DataRow objectRow in objects.Rows)
             {
-                DataRow[] objectSwitchRows = objectRow.GetChildRows("objectSwitches");
                 DataTable newTable = idfDataSet.Tables.Add(objectRow["object_name"].ToString());
+
                 DataRow[] fields = objectRow.GetChildRows("ObjectFields");
+
+
                 foreach (DataRow fieldRow in fields)
                 {
                     DataRow[] fieldSwitchRows = fieldRow.GetChildRows("FieldSwitches");
@@ -178,5 +110,62 @@ namespace EnergyPlus
             }
         }
 
+
+        public void ReadIDFFile(string path)
+        {
+            TextWriter tw = new StreamWriter(@"C:\date.txt");
+            // Reads and parses the file into string list. 
+            List<string> idfListString = new List<string>();
+            using (StreamReader reader = new StreamReader(path))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    idfListString.Add(line);          // Add to list.
+                    Console.WriteLine(line); // Write to console.
+                }
+            }
+            
+            string tempstring = "";
+            foreach (string line in idfListString)
+            {
+                //Remove comments. 
+                string sline = line;
+                sline = Regex.Replace(line, @"(^\s*.*)(!.*)", @"$1");
+                tw.WriteLine(sline);
+                //check if line is a blank or whitespace only.
+                if (sline != "" || !Regex.IsMatch(sline,@"^\s*$") )
+                {
+
+                    // is this an , line. if true then
+                    if (Regex.IsMatch(sline, @"^.*,\s*$")) {
+                        //Trim whitespace.
+                        sline = sline.Trim();
+                        //add to tempstring. 
+                        tempstring = tempstring + sline;
+                    }
+
+                    if (Regex.IsMatch(sline, @"^.*;\s*$"))
+                    {
+                        //Trim whitespace.
+                        sline = sline.Trim();
+                        //remove ;
+                        sline = Regex.Replace(sline, @"(^.*)(;\s*$)", @"$1").Trim();
+                        //add to tempstring. 
+                        tempstring = tempstring + sline;
+                        //split along ,
+                        string[] items = tempstring.Split(',');
+                        //add row to its datatable
+                        DataTable table = idfDataSet.Tables[items[0].Trim()];
+                        DataRow row = table.Rows.Add();
+                        for (int i = 1; i < items.Length; i++)
+                        {
+                            row[i - 1] = items[i];
+                        }
+                        tempstring = "";               
+                    }
+                }
+            }
+        }
     }
 }
