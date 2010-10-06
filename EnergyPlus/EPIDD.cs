@@ -271,39 +271,33 @@ namespace EnergyPlus
 
         public DataTable GetObjectSwitchesFromObjectID(int object_id)
         {
-
-            var query =
-                from object1 in IDD.Tables["objects"].AsEnumerable()
-                join object_sw in IDD.Tables["object_switches"].AsEnumerable()
-                on object1.Field<Int32>("object_id") equals
-                    object_sw.Field<Int32>("object_id")
-                select new
-                {
-                    object_switch = object_sw.Field<Int32>("object_switch"),
-                    object_switch_value = object_sw.Field<Int32>("object_switch_value")
-                };
-
-            return ConvertToDataTable(query);
+            string sTableName = "object";
+            return GetSwitchesFromID(sTableName);
         }
 
 
         //Field query Functions. 
         public DataTable GetFieldSwitchesFromFieldID(int field_id)
         {
+            string sTableName = "field";
+            return GetSwitchesFromID(sTableName);
 
+        }
+
+        private DataTable GetSwitchesFromID(string sTableBaseName)
+        {
             var query =
-            from object1 in IDD.Tables["fields"].AsEnumerable()
-            join object_sw in IDD.Tables["field_switches"].AsEnumerable()
-            on object1.Field<Int32>("field_id") equals
-                object_sw.Field<Int32>("field_id")
+            from object1 in IDD.Tables[sTableBaseName+"s"].AsEnumerable()
+            join object_sw in IDD.Tables[sTableBaseName + "_switches"].AsEnumerable()
+            on object1.Field<Int32>(sTableBaseName + "_id") equals
+                object_sw.Field<Int32>(sTableBaseName + "_id")
             select new
             {
-                fields_switch = object_sw.Field<Int32>("field_switch"),
-                field_switch_value = object_sw.Field<Int32>("field_switch_value")
+                fields_switch = object_sw.Field<Int32>(sTableBaseName + "_switch"),
+                field_switch_value = object_sw.Field<Int32>(sTableBaseName + "_switch_value")
             };
 
             return ConvertToDataTable(query);
-
         }
 
 
