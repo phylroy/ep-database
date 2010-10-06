@@ -7,7 +7,6 @@ using System.Data;
 using System.Text.RegularExpressions;
 using System.Reflection;
 
-
 namespace EnergyPlus
 {
     class EPIDF
@@ -107,6 +106,16 @@ namespace EnergyPlus
                     }
                     newTable.Columns.Add(column);
                 }
+                //Check if it is extensible.
+
+
+                //find out which field is the /begin-extensible field.
+                //Copy Table and rename. 
+                //remove columns, add objectID field. 
+                //Remove Columns from newTable. 
+                //Create a new extensible table. 
+                //make a relation to that table and the new table, and the object_id and the Object ID in the
+
             }
         }
 
@@ -166,6 +175,27 @@ namespace EnergyPlus
                     }
                 }
             }
+        }
+
+        public void WriteIDFFile(string path)
+        {
+            TextWriter tw = new StreamWriter(path);
+
+            foreach (DataTable table in idfDataSet.Tables)
+            {
+                    foreach(DataRow row in table.Rows) 
+                    {
+                        string tempstring1 = table.TableName;
+                        foreach (DataColumn col in table.Columns)
+                        {
+                            tempstring1 += ",\r\n      " + row[col].ToString();
+                        }
+                        tempstring1 += ";"; 
+                        tw.WriteLine(tempstring1);
+                    }
+            }
+            tw.Close();
+
         }
     }
 }

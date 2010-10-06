@@ -11,7 +11,7 @@ namespace EnergyPlus
     class EPIDD
     {
         private static EPIDD instance = new EPIDD();
-        public static EPIDD GetInstance(){return instance;}
+        public static EPIDD GetInstance() { return instance; }
 
         public DataSet IDD;
         string[] FileAsString;
@@ -55,12 +55,12 @@ namespace EnergyPlus
                 dtReturn.Rows.Add(dr);
             }
             return dtReturn;
-        }  
+        }
 
 
         private EPIDD()
         {
-            
+
             //Read file into a string. 
             FileAsString = File.ReadAllLines(@"C:\EnergyPlusV5-0-0\energy+.idd");
 
@@ -91,11 +91,11 @@ namespace EnergyPlus
             column.AutoIncrement = true; column.Unique = true;
             fieldsTable.Columns.Add("object_id", System.Type.GetType("System.Int32"));
             fieldsTable.Columns.Add("field_name", typeof(string));
-            fieldsTable.Columns.Add("field_order", System.Type.GetType("System.Int32"));
+            fieldsTable.Columns.Add("field_position", System.Type.GetType("System.Int32"));
 
             //Create Object <-> Fields Relationship. 
-            IDD.Relations.Add(new DataRelation("ObjectFields", 
-                IDD.Tables["objects"].Columns["object_id"], 
+            IDD.Relations.Add(new DataRelation("ObjectFields",
+                IDD.Tables["objects"].Columns["object_id"],
                 IDD.Tables["fields"].Columns["object_id"]));
 
             //Create Field switches table. 
@@ -107,15 +107,15 @@ namespace EnergyPlus
             fieldSwitchesTable.Columns.Add("field_switch_value", typeof(string));
 
             //Create Field to Fieldswitches relationship.
-            IDD.Relations.Add(new DataRelation("FieldSwitches", 
-                IDD.Tables["fields"].Columns["field_id"], 
+            IDD.Relations.Add(new DataRelation("FieldSwitches",
+                IDD.Tables["fields"].Columns["field_id"],
                 IDD.Tables["field_switches"].Columns["field_id"]));
 
             PopulateDatabase();
         }
 
 
-            
+
 
         public void storeUnits()
         {
@@ -133,11 +133,11 @@ namespace EnergyPlus
                 {
                     conversionTable.Rows.Add(m.Groups[1], m.Groups[2], Convert.ToDouble(m.Groups[3].ToString()));
                     Console.WriteLine(conversionTable);
-                    Console.WriteLine(m.Groups[2]); 
+                    Console.WriteLine(m.Groups[2]);
                     Console.WriteLine(m.Groups[3]);
                 }
             }
-            
+
         }
         public List<string> removeComments()
         {
@@ -152,132 +152,228 @@ namespace EnergyPlus
         public void PopulateDatabase()
         {
             List<string> StringList = removeComments();
-        // blank regex. 
+            // blank regex. 
             Regex blank = new Regex(@"^$");
 
-        // object name regex.
-           Regex object_regex = new Regex(@"^\s*(\S*),\s*$", RegexOptions.IgnoreCase);
-           DataTable objectTable = IDD.Tables["objects"];
-           int current_obj_id = -1;
+            // object name regex.
+            Regex object_regex = new Regex(@"^\s*(\S*),\s*$", RegexOptions.IgnoreCase);
+            DataTable objectTable = IDD.Tables["objects"];
+            int current_obj_id = -1;
 
-        // Field start and switch.
-           Regex field_regex = new Regex(@"^(\s*(A|N)\d*)\s*(\,|\;)\s*\\field\s(.*)?!?", RegexOptions.IgnoreCase);
-           DataTable fieldsTable = IDD.Tables["fields"];
-           int current_field_id = -1;
+            // Field start and switch.
+            Regex field_regex = new Regex(@"^(\s*(A|N)\d*)\s*(\,|\;)\s*\\field\s(.*)?!?", RegexOptions.IgnoreCase);
+            DataTable fieldsTable = IDD.Tables["fields"];
+            int current_field_id = -1;
+            int field_counter = 0;
 
-        // switch. 
-           Regex switch_regex = new Regex(@"^\s*(\\\S*)(\s*(.*)?)", RegexOptions.IgnoreCase);
+            // switch. 
+            Regex switch_regex = new Regex(@"^\s*(\\\S*)(\s*(.*)?)", RegexOptions.IgnoreCase);
 
-        // group switch. 
-           Regex group_regex = new Regex(@"^\s*(\\group)\s*(.*)$", RegexOptions.IgnoreCase);
-           String current_group = "";
-           foreach (string line in StringList)
-           {
-               //check if blank line
-               Match match = blank.Match(line);
-               if (!match.Success)
-               {
-                   Match group_match = group_regex.Match(line);
-                   if (group_match.Success)
-                   {
-                       current_group = group_match.Groups[2].ToString().Trim();
-                   }
+            // group switch. 
+            Regex group_regex = new Regex(@"^\s*(\\group)\s*(.*)$", RegexOptions.IgnoreCase);
+            String current_group = "";
+            foreach (string line in StringList)
+            {
+                //check if blank line
+                Match match = blank.Match(line);
+                if (!match.Success)
+                {
+                    Match group_match = group_regex.Match(line);
+                    if (group_match.Success)
+                    {
+                        current_group = group_match.Groups[2].ToString().Trim();
+                    }
 
-                   Match object_match = object_regex.Match(line);
-                   if (object_match.Success)
-                   {
-                       //Found new object.
-                       DataRow row = objectTable.Rows.Add();
-                       row["object_name"] = object_match.Groups[1].ToString().Trim();
-                       row["group"] = current_group;
-                       current_obj_id = (int)row["object_id"];
-                       current_field_id = -1;
-                   }
+                    Match object_match = object_regex.Match(line);
+                    if (object_match.Success)
+                    {
+                        //Found new object.
+                        DataRow row = objectTable.Rows.Add();
+                        row["object_name"] = object_match.Groups[1].ToString().Trim();
+                        row["group"] = current_group;
+                        current_obj_id = (int)row["object_id"];
+                        current_field_id = -1;
+                        field_counter = 0;
+                    }
 
-                   Match field_match = field_regex.Match(line);
-                   if (field_match.Success)
-                   {
-                       //Found new field.
-                       DataRow row = fieldsTable.Rows.Add();
-                       current_field_id = (int)row["field_id"];
-                       row["field_name"] = field_match.Groups[4].ToString().Trim();
-                       row["object_id"] = current_obj_id;
-                   }
+                    Match field_match = field_regex.Match(line);
+                    if (field_match.Success)
+                    {
+                        //Found new field.
+                        DataRow row = fieldsTable.Rows.Add();
+                        current_field_id = (int)row["field_id"];
+                        row["field_name"] = field_match.Groups[4].ToString().Trim();
+                        row["object_id"] = current_obj_id;
+                        row["field_position"] = field_counter++;
+                    }
 
-                   Match switch_match = switch_regex.Match(line);
-                   if (switch_match.Success && !group_match.Success)
-                   {
-                       //found switch. 
-                       //check if object switch. 
-                       if (current_field_id == -1) 
-                       {
-                           //Since this is an object switch, save to object switch table. 
-                           DataRow row = IDD.Tables["object_switches"].Rows.Add();
-                           row["object_id"] = current_obj_id;
-                           row["object_switch"] = switch_match.Groups[1].ToString().Trim();
-                           row["object_switch_value"] = switch_match.Groups[2].ToString().Trim();
+                    Match switch_match = switch_regex.Match(line);
+                    if (switch_match.Success && !group_match.Success)
+                    {
+                        //found switch. 
+                        //check if object switch. 
+                        if (current_field_id == -1)
+                        {
+                            //Since this is an object switch, save to object switch table. 
+                            DataRow row = IDD.Tables["object_switches"].Rows.Add();
+                            row["object_id"] = current_obj_id;
+                            row["object_switch"] = switch_match.Groups[1].ToString().Trim();
+                            row["object_switch_value"] = switch_match.Groups[2].ToString().Trim();
 
-                       }
-                       else {
-                           //Since this is an field switch, save to object switch table. 
-                           DataRow row = IDD.Tables["field_switches"].Rows.Add();
-                           row["field_id"] = current_field_id;
-                           row["field_switch"] = switch_match.Groups[1].ToString().Trim();
-                           row["field_switch_value"] = switch_match.Groups[2].ToString().Trim();
-                       }
-                   }
-               }
-           }
+                        }
+                        else
+                        {
+                            //Since this is an field switch, save to object switch table. 
+                            DataRow row = IDD.Tables["field_switches"].Rows.Add();
+                            row["field_id"] = current_field_id;
+                            row["field_switch"] = switch_match.Groups[1].ToString().Trim();
+                            row["field_switch_value"] = switch_match.Groups[2].ToString().Trim();
+                        }
+                    }
+                }
+            }
         }
-        public void CreateReferences() 
+
+        //Object Query Functions
+        public int GetObjectIDFromObjectName(string name)
         {
- 
+            var query =
+              from object1 in IDD.Tables["objects"].AsEnumerable()
+              where object1.Field<String>("object_name") == name
+              select object1.Field<Int32>("object_id");
+            return query.First();
+
+        }
+
+        public string GetObjectNameFromObjectID(int object_id)
+        {
+            var query =
+      from object1 in IDD.Tables["objects"].AsEnumerable()
+      where object1.Field<Int32>("object_id") == object_id
+      select object1.Field<String>("object_name");
+            return query.First();
+
         }
 
 
-        public List<string> GetChoices(int object_id, int field_id, int switch_id)
+        public List<int> GetFieldsIDsFromObjectID(int object_id)
         {
-
-            //Create the datatables for each IDD table for easier access. 
-            DataTable objects = IDD.Tables["objects"];
-            DataTable objects_switches = IDD.Tables["object_switches"];
-            DataTable objects_fields = IDD.Tables["fields"];
-            DataTable objects_fields_switches = IDD.Tables["field_switches"];
-            //iterate through object database
-
-
-            var fieldquery =
-            from object1 in objects.AsEnumerable()
-            join object_field in objects_fields.AsEnumerable()
+            var query =
+            from object1 in IDD.Tables["objects"].AsEnumerable()
+            join object_field in IDD.Tables["fields"].AsEnumerable()
             on object1.Field<Int32>("object_id") equals
             object_field.Field<Int32>("object_id")
+            where object_field.Field<Int32>("object_id") == object_id
+            select object_field.Field<Int32>("field_id");
+            return (List<int>)query;
+
+        }
+
+        public DataTable GetObjectSwitchesFromObjectID(int object_id)
+        {
+
+            var query =
+                from object1 in IDD.Tables["objects"].AsEnumerable()
+                join object_sw in IDD.Tables["object_switches"].AsEnumerable()
+                on object1.Field<Int32>("object_id") equals
+                    object_sw.Field<Int32>("object_id")
+                select new
+                {
+                    object_switch = object_sw.Field<Int32>("object_switch"),
+                    object_switch_value = object_sw.Field<Int32>("object_switch_value")
+                };
+
+            return ConvertToDataTable(query);
+        }
+
+
+        //Field query Functions. 
+        public DataTable GetFieldSwitchesFromFieldID(int field_id)
+        {
+
+            var query =
+            from object1 in IDD.Tables["fields"].AsEnumerable()
+            join object_sw in IDD.Tables["field_switches"].AsEnumerable()
+            on object1.Field<Int32>("field_id") equals
+                object_sw.Field<Int32>("field_id")
             select new
             {
-                object_name =
-                object1.Field<String>("object_name"),
-                object_id =
-                object1.Field<Int32>("object_id"),
-                field_name =
-                object_field.Field<String>("field_name"),
-                field_id =
-                object_field.Field<Int32>("field_id")
+                fields_switch = object_sw.Field<Int32>("field_switch"),
+                field_switch_value = object_sw.Field<Int32>("field_switch_value")
             };
-            DataTable orderTable2 = ConvertToDataTable(fieldquery);
-            var fieldquery2 =
-            from object1 in orderTable2.AsEnumerable()
-            join object_field_switch in objects_fields_switches.AsEnumerable()
-            on object1.Field<Int32>("field_id") equals
-            object_field_switch.Field<Int32>("field_id")
+
+            return ConvertToDataTable(query);
+
+        }
+
+
+        public int GetFieldPositionFromFieldID(int field_id)
+        {
+            var query =
+            from field in IDD.Tables["fields"].AsEnumerable()
+            where field.Field<Int32>("field_id") == field_id
+            select field.Field<Int32>("field_position");
+            return query.First(); ;
+        }
+
+
+
+
+        public string GetFieldName(int field_id)
+        {
+            return GetFieldSwitchValues(field_id, @"\field").First();
+        }
+
+
+
+        public string GetFieldType(int field_id)
+        {
+            return GetFieldSwitchValues(field_id, @"\type").First();
+        }
+
+        public List<string> GetFieldChoices(int field_id)
+        {
+
+            return GetFieldSwitchValues(field_id, @"\key");
+        }
+
+        public List<string> GetFieldNotes(int field_id)
+        {
+            return GetFieldSwitchValues(field_id, @"\note");
+        }
+
+
+
+
+
+
+
+//Field Generic methods. 
+        public bool IsFieldSwitchPresent(int field_id, string switch_name)
+        {
+        
+         List<string> values = GetFieldSwitchValues(field_id, switch_name);
+         if (values.Count() == 0) { return false; } else { return true; }
+        
+        }
+
+
+
+        public List<string> GetFieldSwitchValues(int field_id, string switch_name)
+        {
+
+            DataTable SwitchTable = GetFieldSwitchesFromFieldID(field_id);
+            var query =
+            from object1 in SwitchTable.AsEnumerable()
             where
-             object1.Field<Int32>("object_id") == object_id &&
-             object1.Field<Int32>("field_id") == field_id &&
-             object1.Field<Int32>("switch_id") == switch_id &&
-             object_field_switch.Field<String>("field_switch") == @"\key"
+
+             object1.Field<String>("field_switch") == switch_name
             select
-                object_field_switch.Field<String>("field_switch_value");
+                object1.Field<String>("field_switch_value");
 
             List<string> slChoices = new List<string>();
-            foreach (var choice in fieldquery2) {
+            foreach (var choice in query)
+            {
                 slChoices.Add(choice.ToString());
             }
             return slChoices;
@@ -291,7 +387,7 @@ namespace EnergyPlus
             {
                 string filename = "C:\\test\\" + table.ToString().Replace(":", "-") + ".xml";
                 table.WriteXml(filename);
-                 filename = "C:\\test\\" + table.ToString().Replace(":", "-") + ".xsd";
+                filename = "C:\\test\\" + table.ToString().Replace(":", "-") + ".xsd";
                 table.WriteXmlSchema(filename);
             }
         }
