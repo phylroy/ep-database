@@ -67,11 +67,6 @@ namespace EnergyPlus
             DataTable objects_switches = epidd.IDD.Tables["object_switches"];
             DataTable objects_fields = epidd.IDD.Tables["fields"];
             DataTable objects_fields_switches = epidd.IDD.Tables["field_switches"];
-            //List<string> test = epidd.GetChoices(1, 1, 1);
-
-
-
-
 
             //Create DataStructure to hold IDF file. 
             DataTable commandsTable = idfDataSet.Tables.Add("commands");
