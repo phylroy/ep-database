@@ -71,15 +71,34 @@ namespace EnergyPlus
 
 
 
+
+
             //Create DataStructure to hold IDF file. 
+            DataTable commandsTable = idfDataSet.Tables.Add("commands");
+            DataColumn command_column = commandsTable.Columns.Add("command_id", typeof(Int32));
+            command_column.AutoIncrement = true; command_column.Unique = true;
+            DataColumn object_id_column = commandsTable.Columns.Add("object_id", typeof(Int32));
+
+
 
             foreach (DataRow objectRow in objects.Rows)
             {
+                //create new table for all commands of object type. 
                 DataTable newTable = idfDataSet.Tables.Add(objectRow["object_name"].ToString());
+                //Add a column to keep the unique command identifier. 
+                DataColumn command_column1 = newTable.Columns.Add("command_id", typeof(Int32));
+                command_column1.Unique = true;
 
+                //Create Command <-> Object Relationship.
+                idfDataSet.Relations.Add(new DataRelation("CommandIDto" + objectRow["object_name"].ToString(),
+                    idfDataSet.Tables["commands"].Columns["command_id"],
+                    newTable.Columns["command_id"])
+                    );
+
+
+
+                
                 DataRow[] fields = objectRow.GetChildRows("ObjectFields");
-
-
                 foreach (DataRow fieldRow in fields)
                 {
                     DataRow[] fieldSwitchRows = fieldRow.GetChildRows("FieldSwitches");
@@ -164,12 +183,22 @@ namespace EnergyPlus
                         tempstring = tempstring + sline;
                         //split along ,
                         string[] items = tempstring.Split(',');
+                        //find object name.
+                        string object_name = items[0].Trim();
+                        //find object id. 
+                        int object_id = epidd.GetObjectIDFromObjectName(object_name);
+                        //Add command to command table. 
+                        DataRow command_row = idfDataSet.Tables["commands"].Rows.Add();
+                        command_row["object_id"] = object_id; 
+
+
                         //add row to its datatable
                         DataTable table = idfDataSet.Tables[items[0].Trim()];
                         DataRow row = table.Rows.Add();
+                        row["command_id"] = command_row["command_id"];
                         for (int i = 1; i < items.Length; i++)
                         {
-                            row[i - 1] = items[i];
+                            row[i] = items[i];
                         }
                         tempstring = "";               
                     }
