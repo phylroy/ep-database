@@ -14,7 +14,7 @@ namespace EnergyPlus
         public DataSet IDD;
         string[] FileAsString;
 
-        //Methods
+        //Methods to Create Databases.
         private static EPIDD instance = new EPIDD();
         public static  EPIDD GetInstance() { return instance; }
         public DataTable    ConvertToDataTable<T>(IEnumerable<T> varlist)
@@ -228,6 +228,12 @@ namespace EnergyPlus
                 }
             }
         }
+        public void CreateReferenceTables() 
+        { 
+        
+
+
+        }
         //Object Query Functions
         public int          GetObjectIDFromObjectName(string name)
         {
@@ -237,6 +243,14 @@ namespace EnergyPlus
               select object1.Field<Int32>("object_id");
             return query.First();
 
+        }
+        public int          GetObjectIDFromFieldId(int field_id)
+        {
+            var query =
+            from field in IDD.Tables["fields"].AsEnumerable()
+            where field.Field<Int32>("field_id") == field_id
+            select field.Field<Int32>("object_id");
+            return (int)query.First();
         }
         public string       GetObjectNameFromObjectID(int object_id)
         {
@@ -257,8 +271,8 @@ namespace EnergyPlus
             where object_field.Field<Int32>("object_id") == object_id
             select object_field.Field<Int32>("field_id");
             return (List<int>)query;
-
         }
+
         public int          GetNumberOfFieldsFromObjectID(int object_id)
         {
             var query =
@@ -276,27 +290,13 @@ namespace EnergyPlus
             string sTableName = "object";
             return GetSwitchesFromID(sTableName);
         }
+
         //Field query Functions. 
         public DataTable    GetFieldSwitchesFromFieldID(int field_id)
         {
             string sTableName = "field";
             return GetSwitchesFromID(sTableName);
 
-        }
-        private DataTable   GetSwitchesFromID(string sTableBaseName)
-        {
-            var query =
-            from object1 in IDD.Tables[sTableBaseName+"s"].AsEnumerable()
-            join object_sw in IDD.Tables[sTableBaseName + "_switches"].AsEnumerable()
-            on object1.Field<Int32>(sTableBaseName + "_id") equals
-                object_sw.Field<Int32>(sTableBaseName + "_id")
-            select new
-            {
-                fields_switch = object_sw.Field<Int32>(sTableBaseName + "_switch"),
-                field_switch_value = object_sw.Field<Int32>(sTableBaseName + "_switch_value")
-            };
-
-            return ConvertToDataTable(query);
         }
         public int          GetFieldPositionFromFieldID(int field_id)
         {
@@ -323,7 +323,8 @@ namespace EnergyPlus
         {
             return GetFieldSwitchValues(field_id, @"\note");
         }
-//Field Generic methods. 
+
+        //Field Generic methods. 
         public bool         IsFieldSwitchPresent(int field_id, string switch_name)
         {
         
@@ -350,6 +351,21 @@ namespace EnergyPlus
             }
             return slChoices;
         }
+        private DataTable   GetSwitchesFromID(string sTableBaseName)
+        {
+            var query =
+            from object1 in IDD.Tables[sTableBaseName + "s"].AsEnumerable()
+            join object_sw in IDD.Tables[sTableBaseName + "_switches"].AsEnumerable()
+            on object1.Field<Int32>(sTableBaseName + "_id") equals
+                object_sw.Field<Int32>(sTableBaseName + "_id")
+            select new
+            {
+                fields_switch = object_sw.Field<Int32>(sTableBaseName + "_switch"),
+                field_switch_value = object_sw.Field<Int32>(sTableBaseName + "_switch_value")
+            };
+
+            return ConvertToDataTable(query);
+        }
         public void         writeIDDXML()
         {
             foreach (DataTable table in IDD.Tables)
@@ -360,6 +376,5 @@ namespace EnergyPlus
                 table.WriteXmlSchema(filename);
             }
         }
-
     }
 }
