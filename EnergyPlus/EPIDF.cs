@@ -90,9 +90,6 @@ namespace EnergyPlus
                     newTable.Columns["command_id"])
                     );
 
-
-
-                
                 DataRow[] fields = objectRow.GetChildRows("ObjectFields");
                 foreach (DataRow fieldRow in fields)
                 {
