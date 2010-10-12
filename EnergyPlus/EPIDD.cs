@@ -99,7 +99,7 @@ namespace EnergyPlus
 
             //Create Field switches table. 
             DataTable fieldSwitchesTable = IDD.Tables.Add("field_switches");
-            column = fieldSwitchesTable.Columns.Add("switch_id", typeof(Int32));
+            column = fieldSwitchesTable.Columns.Add("field_switch_id", typeof(Int32));
             column.AutoIncrement = true; column.Unique = true;
             fieldSwitchesTable.Columns.Add("field_id", System.Type.GetType("System.Int32"));
             fieldSwitchesTable.Columns.Add("field_switch", typeof(string));
@@ -161,6 +161,9 @@ namespace EnergyPlus
             int current_field_id = -1;
             int field_counter = 0;
 
+            //Regex extensible_regex = new Regex(@"^.*:(\d*));
+
+
             // switch. 
             Regex switch_regex = new Regex(@"^\s*(\\\S*)(\s*(.*)?)", RegexOptions.IgnoreCase);
 
@@ -200,6 +203,13 @@ namespace EnergyPlus
                         row["field_name"] = field_match.Groups[4].ToString().Trim();
                         row["object_id"] = current_obj_id;
                         row["field_position"] = field_counter++;
+
+                        DataRow switchrow = IDD.Tables["field_switches"].Rows.Add();
+                        switchrow["field_id"] = current_field_id;
+                        switchrow["field_switch"] = @"\field";
+                        switchrow["field_switch_value"] = field_match.Groups[4].ToString().Trim();
+
+
                     }
 
                     Match switch_match = switch_regex.Match(line);
@@ -210,10 +220,30 @@ namespace EnergyPlus
                         if (current_field_id == -1)
                         {
                             //Since this is an object switch, save to object switch table. 
-                            DataRow row = IDD.Tables["object_switches"].Rows.Add();
-                            row["object_id"] = current_obj_id;
-                            row["object_switch"] = switch_match.Groups[1].ToString().Trim();
-                            row["object_switch_value"] = switch_match.Groups[2].ToString().Trim();
+                            try
+                            {
+                                DataRow row = IDD.Tables["object_switches"].Rows.Add();
+                                row["object_id"] = current_obj_id;
+                                if (switch_match.Groups[1].ToString().Trim().Contains(@"\extensible"))
+                                {
+                                    string temp = switch_match.Groups[1].ToString().Trim();
+                                    int position = temp.IndexOf(':');
+                                    //string valuestring = temp.Substring(position + 1, 2);
+
+                                    row["object_switch"] = switch_match.Groups[1].ToString().Trim();
+                                    //row["object_switch_value"] = valuestring;
+                                }
+                                else
+                                {
+                                    row["object_switch"] = switch_match.Groups[1].ToString().Trim();
+                                    row["object_switch_value"] = switch_match.Groups[2].ToString().Trim();
+
+                                }
+                            }
+                            catch
+                            {
+                            int io = 234234;
+                            }
 
                         }
                         else
@@ -235,6 +265,23 @@ namespace EnergyPlus
 
         }
         //Object Query Functions
+        public List<int> GetObjectIDList()
+        {
+            var query =
+                from object1 in IDD.Tables["objects"].AsEnumerable()
+                select object1.Field<Int32>("object_id");
+            return EnumerableRowToListofInts(query);
+        }
+
+        public List<int> EnumerableRowToListofInts(EnumerableRowCollection<int> query)
+        {
+            List<int> returnval = new List<int>();
+            foreach (int value in query)
+            {
+                returnval.Add(value);
+            }
+            return returnval;
+        }
         public int          GetObjectIDFromObjectName(string name)
         {
             var query =
@@ -270,7 +317,12 @@ namespace EnergyPlus
             object_field.Field<Int32>("object_id")
             where object_field.Field<Int32>("object_id") == object_id
             select object_field.Field<Int32>("field_id");
-            return (List<int>)query;
+            List<int> returnval = new List<int>();
+            foreach (int value in query)
+            {
+                returnval.Add(value);
+            }
+            return returnval;
         }
 
         public int          GetNumberOfFieldsFromObjectID(int object_id)
@@ -288,16 +340,28 @@ namespace EnergyPlus
         public DataTable    GetObjectSwitchesFromObjectID(int object_id)
         {
             string sTableName = "object";
-            return GetSwitchesFromID(sTableName);
+            return GetSwitchesFromID(sTableName,object_id);
         }
+        public List<int>    GetObjectSwitcheIDsFromObjectID(int object_id)
+        {
+            string sTableName = "object";
+            return GetSwitchIDsFromID(sTableName,object_id);
+        }
+
 
         //Field query Functions. 
         public DataTable    GetFieldSwitchesFromFieldID(int field_id)
         {
             string sTableName = "field";
-            return GetSwitchesFromID(sTableName);
-
+            return GetSwitchesFromID(sTableName,field_id);
         }
+
+        public List<int> GetFieldSwitchIDsFromFieldID(int field_id)
+        {
+            string sTableName = "field";
+            return GetSwitchIDsFromID(sTableName, field_id);
+        }
+
         public int          GetFieldPositionFromFieldID(int field_id)
         {
             var query =
@@ -312,7 +376,12 @@ namespace EnergyPlus
         }
         public string       GetFieldType(int field_id)
         {
+            if (IsFieldSwitchPresent(field_id, @"\type") )
+            {
             return GetFieldSwitchValues(field_id, @"\type").First();
+            }
+        else 
+        return null;
         }
         public List<string> GetFieldChoices(int field_id)
         {
@@ -351,21 +420,45 @@ namespace EnergyPlus
             }
             return slChoices;
         }
-        private DataTable   GetSwitchesFromID(string sTableBaseName)
+        private DataTable   GetSwitchesFromID(string sTableBaseName, int id)
         {
             var query =
             from object1 in IDD.Tables[sTableBaseName + "s"].AsEnumerable()
             join object_sw in IDD.Tables[sTableBaseName + "_switches"].AsEnumerable()
             on object1.Field<Int32>(sTableBaseName + "_id") equals
                 object_sw.Field<Int32>(sTableBaseName + "_id")
+            where object1.Field<Int32>(sTableBaseName + "_id") == id
             select new
             {
-                fields_switch = object_sw.Field<Int32>(sTableBaseName + "_switch"),
-                field_switch_value = object_sw.Field<Int32>(sTableBaseName + "_switch_value")
+                field_switch = object_sw.Field<String>(sTableBaseName + "_switch"),
+                field_switch_value = object_sw.Field<String>(sTableBaseName + "_switch_value")
             };
 
             return ConvertToDataTable(query);
         }
+
+        private List<int> GetSwitchIDsFromID(string sTableBaseName, int id)
+        {
+
+            string test = sTableBaseName + "_switch".ToString()+"_id".ToString();
+            var query =
+            from object1 in IDD.Tables[sTableBaseName + "s"].AsEnumerable()
+            join object_sw in IDD.Tables[sTableBaseName + "_switches"].AsEnumerable()
+            on object1.Field<Int32>(sTableBaseName + "_id") equals
+                object_sw.Field<Int32>(sTableBaseName + "_id")
+            where object1.Field<Int32>(sTableBaseName + "_id") == id
+            select 
+            object_sw.Field<Int32>(test);
+            List<int> returnval = new List<int>();
+            foreach (int value in query)
+            {
+                returnval.Add(value);
+            }
+            return returnval;
+        }
+
+
+
         public void         writeIDDXML()
         {
             foreach (DataTable table in IDD.Tables)

@@ -96,28 +96,39 @@ namespace EnergyPlus
                     DataRow[] fieldSwitchRows = fieldRow.GetChildRows("FieldSwitches");
                     DataColumn column = new DataColumn(fieldRow["field_name"].ToString());
                     //Console.WriteLine(objectRow["object_name"].ToString() + fieldRow["field_name"].ToString());
-
-                    // find dataType
-                    string dataType = "alpha";
-                    switch (dataType)
+                    string datatype = null;
+                    Console.WriteLine(fieldRow["field_name"].ToString());
+                    int field_id = (int)fieldRow["field_id"];
+                    foreach (DataRow row in fieldSwitchRows)
                     {
-                        case "choice":
-                        case "object-list":
-                        case "alpha":
-                            column.DataType = System.Type.GetType("System.String");
-                            break;
-                        case "integer":
-                            column.DataType = System.Type.GetType("System.Int32");
-                            break;
-                        case "real":
-                            column.DataType = System.Type.GetType("System.Double");
-                            break;
-                        default:
-                            break;
+                        
+                        if (row[2].ToString() == @"\type")
+                        {
+                            datatype = row[3].ToString(); 
+                        }
                     }
-                    newTable.Columns.Add(column);
+                            
+                    if (datatype == null) datatype = "alpha";
+
+                            switch (datatype)
+                            {
+                                //Dump everything into a string since some selections can be string and number.
+                                case "choice":
+                                case "object-list":
+                                case "alpha":
+                                case "integer":
+                                case "real":
+                                    column.DataType = System.Type.GetType("System.String");
+                                    break;
+                                default:
+                                    break;
+                            }
+                            newTable.Columns.Add(column);
+                        }
+                     
+                    
                 }
-                //Check if it is extensible.
+                //Check if it is object is extensible.
 
 
                 //find out which field is the /begin-extensible field.
@@ -128,7 +139,7 @@ namespace EnergyPlus
                 //make a relation to that table and the new table, and the object_id and the Object ID in the
 
             }
-        }
+        
 
 
         public void ReadIDFFile(string path)
