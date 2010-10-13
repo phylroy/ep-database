@@ -99,6 +99,19 @@ namespace EnergyPlus
                     string datatype = null;
                     Console.WriteLine(fieldRow["field_name"].ToString());
                     int field_id = (int)fieldRow["field_id"];
+                    
+                    foreach (DataRow row in fieldSwitchRows)
+                    {
+
+                        if (row[2].ToString() == @"\begin-extensible")
+                        {
+                            newTable = idfDataSet.Tables.Add(objectRow["object_name"].ToString()+"_Extensible");
+                        }
+                    }
+
+
+
+
                     foreach (DataRow row in fieldSwitchRows)
                     {
                         
@@ -190,6 +203,7 @@ namespace EnergyPlus
                         string object_name = items[0].Trim();
                         //find object id. 
                         int object_id = epidd.GetObjectIDFromObjectName(object_name);
+                        int NumberOfFields = epidd.GetNumberOfFieldsFromObjectID(object_id);
                         //Add command to command table. 
                         DataRow command_row = idfDataSet.Tables["commands"].Rows.Add();
                         command_row["object_id"] = object_id; 

@@ -170,6 +170,8 @@ namespace EnergyPlus
             // group switch. 
             Regex group_regex = new Regex(@"^\s*(\\group)\s*(.*)$", RegexOptions.IgnoreCase);
             String current_group = "";
+            int iExtensible = 0;
+            bool bBeginExtensible = false;
             foreach (string line in StringList)
             {
                 //check if blank line
@@ -183,10 +185,13 @@ namespace EnergyPlus
                     }
 
                     Match object_match = object_regex.Match(line);
-                    if (object_match.Success)
+                    if (object_match.Success )
                     {
                         //Found new object.
+
                         DataRow row = objectTable.Rows.Add();
+                        iExtensible = 0; 
+                        bBeginExtensible = false;
                         row["object_name"] = object_match.Groups[1].ToString().Trim();
                         row["group"] = current_group;
                         current_obj_id = (int)row["object_id"];
@@ -195,8 +200,10 @@ namespace EnergyPlus
                     }
 
                     Match field_match = field_regex.Match(line);
-                    if (field_match.Success)
+                    // I want to skip this if bBeginExtensible is true and iExtensible <=0
+                    if (field_match.Success && !(bBeginExtensible == true && iExtensible <= 0) )
                     {
+
                         //Found new field.
                         DataRow row = fieldsTable.Rows.Add();
                         current_field_id = (int)row["field_id"];
@@ -208,7 +215,7 @@ namespace EnergyPlus
                         switchrow["field_id"] = current_field_id;
                         switchrow["field_switch"] = @"\field";
                         switchrow["field_switch_value"] = field_match.Groups[4].ToString().Trim();
-
+                        if ( bBeginExtensible == true) iExtensible--;
 
                     }
 
@@ -217,7 +224,7 @@ namespace EnergyPlus
                     {
                         //found switch. 
                         //check if object switch. 
-                        if (current_field_id == -1)
+                        if (current_field_id == -1 && !(bBeginExtensible == true && iExtensible <= 0))
                         {
                             //Since this is an object switch, save to object switch table. 
 
@@ -231,23 +238,28 @@ namespace EnergyPlus
 
                                     row["object_switch"] = extensible_match.Groups[1].ToString().Trim();
                                     row["object_switch_value"] = extensible_match.Groups[2].ToString().Trim();
+                                    iExtensible = Convert.ToInt32(row["object_switch_value"].ToString());
                                 }
                                 else
                                 {
                                     row["object_switch"] = switch_match.Groups[1].ToString().Trim();
                                     row["object_switch_value"] = switch_match.Groups[2].ToString().Trim();
-
                                 }
-
-
                         }
-                        else
+                        if (current_field_id != -1 && !(bBeginExtensible == true && iExtensible <= 0))
                         {
                             //Since this is an field switch, save to object switch table. 
                             DataRow row = IDD.Tables["field_switches"].Rows.Add();
                             row["field_id"] = current_field_id;
                             row["field_switch"] = switch_match.Groups[1].ToString().Trim();
                             row["field_switch_value"] = switch_match.Groups[2].ToString().Trim();
+                            if ( row["field_switch"].ToString() == @"\begin-extensible")
+                            {
+                                bBeginExtensible = true;
+                                iExtensible--;
+                            }
+
+
                         }
                     }
                 }
@@ -319,9 +331,10 @@ namespace EnergyPlus
             }
             return returnval;
         }
-
         public int          GetNumberOfFieldsFromObjectID(int object_id)
         {
+
+            //using get childrean may be faster than this. 
             var query =
             from object1 in IDD.Tables["objects"].AsEnumerable()
             join object_field in IDD.Tables["fields"].AsEnumerable()
@@ -342,6 +355,12 @@ namespace EnergyPlus
         {
             string sTableName = "object";
             return GetSwitchIDsFromID(sTableName,object_id);
+        }
+        public int          GetObjectExtensibleNumber(object_id)
+        {
+            //get list of swtiches for each in object.
+            //find \extensible switch and return value. else return zero.
+                
         }
 
 
@@ -432,8 +451,7 @@ namespace EnergyPlus
 
             return ConvertToDataTable(query);
         }
-
-        private List<int> GetSwitchIDsFromID(string sTableBaseName, int id)
+        private List<int>   GetSwitchIDsFromID(string sTableBaseName, int id)
         {
 
             string test = sTableBaseName + "_switch".ToString()+"_id".ToString();
@@ -452,9 +470,6 @@ namespace EnergyPlus
             }
             return returnval;
         }
-
-
-
         public void         writeIDDXML()
         {
             foreach (DataTable table in IDD.Tables)
