@@ -161,7 +161,7 @@ namespace EnergyPlus
             int current_field_id = -1;
             int field_counter = 0;
 
-            //Regex extensible_regex = new Regex(@"^.*:(\d*));
+            Regex extensible_regex = new Regex(@"^(.*):(\d*)");
 
 
             // switch. 
@@ -220,18 +220,17 @@ namespace EnergyPlus
                         if (current_field_id == -1)
                         {
                             //Since this is an object switch, save to object switch table. 
-                            try
-                            {
+
                                 DataRow row = IDD.Tables["object_switches"].Rows.Add();
                                 row["object_id"] = current_obj_id;
                                 if (switch_match.Groups[1].ToString().Trim().Contains(@"\extensible"))
                                 {
                                     string temp = switch_match.Groups[1].ToString().Trim();
-                                    int position = temp.IndexOf(':');
+                                    Match extensible_match = extensible_regex.Match(temp);
                                     //string valuestring = temp.Substring(position + 1, 2);
 
-                                    row["object_switch"] = switch_match.Groups[1].ToString().Trim();
-                                    //row["object_switch_value"] = valuestring;
+                                    row["object_switch"] = extensible_match.Groups[1].ToString().Trim();
+                                    row["object_switch_value"] = extensible_match.Groups[2].ToString().Trim();
                                 }
                                 else
                                 {
@@ -239,11 +238,7 @@ namespace EnergyPlus
                                     row["object_switch_value"] = switch_match.Groups[2].ToString().Trim();
 
                                 }
-                            }
-                            catch
-                            {
-                            int io = 234234;
-                            }
+
 
                         }
                         else
@@ -335,6 +330,7 @@ namespace EnergyPlus
             where object_field.Field<Int32>("object_id") == object_id
             select object_field.Field<Int32>("field_id");
             return query.Count();
+            
 
         }
         public DataTable    GetObjectSwitchesFromObjectID(int object_id)
