@@ -210,6 +210,7 @@ namespace EnergyPlus
 
 
                         //add row to its datatable
+                        //TODO have non-extensible row items to the table and add the extensible item added to the extensible table with command_id. 
                         DataTable table = idfDataSet.Tables[items[0].Trim()];
                         DataRow row = table.Rows.Add();
                         row["command_id"] = command_row["command_id"];
