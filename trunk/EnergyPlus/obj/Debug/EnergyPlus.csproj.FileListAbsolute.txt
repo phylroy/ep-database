@@ -18,3 +18,8 @@ E:\ep-database\EnergyPlus\obj\Debug\EnergyPlus.pdb
 E:\ep-database\EnergyPlus\obj\Debug\ResolveAssemblyReference.cache
 E:\ep-database\EnergyPlus\bin\Debug\EnergyPlus.exe
 E:\ep-database\EnergyPlus\bin\Debug\EnergyPlus.pdb
+C:\ep-database\EnergyPlus\obj\Debug\EnergyPlus.exe
+C:\ep-database\EnergyPlus\obj\Debug\EnergyPlus.pdb
+C:\ep-database\EnergyPlus\bin\Debug\EnergyPlus.exe
+C:\ep-database\EnergyPlus\bin\Debug\EnergyPlus.pdb
+C:\ep-database\EnergyPlus\obj\Debug\ResolveAssemblyReference.cache
