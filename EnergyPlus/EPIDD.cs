@@ -12,6 +12,11 @@ namespace EnergyPlus
     {
         //Members
         public DataSet IDD;
+        DataTable objectsTable;
+        DataTable objectsSwitchesTable;
+        DataTable fieldsTable;
+        DataTable fieldSwitchesTable;
+
         string[] FileAsString;
 
         //Methods to Create Databases.
@@ -65,14 +70,14 @@ namespace EnergyPlus
 
             IDD = new DataSet("DataDictionary");
             //Create Objects Table.
-            DataTable objectsTable = IDD.Tables.Add("objects");
+            objectsTable = IDD.Tables.Add("objects");
             DataColumn column = objectsTable.Columns.Add("object_id", typeof(Int32));
             column.AutoIncrement = true; column.Unique = true;
             objectsTable.Columns.Add("object_name", typeof(string));
             objectsTable.Columns.Add("group", typeof(string));
 
             //Create object Switches Table.
-            DataTable objectsSwitchesTable = IDD.Tables.Add("object_switches");
+            objectsSwitchesTable = IDD.Tables.Add("object_switches");
             column = objectsSwitchesTable.Columns.Add("object_switch_id", typeof(Int32));
             column.AutoIncrement = true; column.Unique = true;
             objectsSwitchesTable.Columns.Add("object_id", System.Type.GetType("System.Int32"));
@@ -85,7 +90,7 @@ namespace EnergyPlus
                 IDD.Tables["object_switches"].Columns["object_id"]));
 
             //Create Fields Table.
-            DataTable fieldsTable = IDD.Tables.Add("fields");
+            fieldsTable = IDD.Tables.Add("fields");
             column = fieldsTable.Columns.Add("field_id", typeof(Int32));
             column.AutoIncrement = true; column.Unique = true;
             fieldsTable.Columns.Add("object_id", System.Type.GetType("System.Int32"));
@@ -98,7 +103,7 @@ namespace EnergyPlus
                 IDD.Tables["fields"].Columns["object_id"]));
 
             //Create Field switches table. 
-            DataTable fieldSwitchesTable = IDD.Tables.Add("field_switches");
+            fieldSwitchesTable = IDD.Tables.Add("field_switches");
             column = fieldSwitchesTable.Columns.Add("field_switch_id", typeof(Int32));
             column.AutoIncrement = true; column.Unique = true;
             fieldSwitchesTable.Columns.Add("field_id", System.Type.GetType("System.Int32"));
@@ -356,10 +361,24 @@ namespace EnergyPlus
             string sTableName = "object";
             return GetSwitchIDsFromID(sTableName,object_id);
         }
-        public int          GetObjectExtensibleNumber(object_id)
+        public int          GetObjectExtensibleNumber(int object_id)
         {
-            //get list of swtiches for each in object.
-            //find \extensible switch and return value. else return zero.
+            int iExtensibleNumber = 0;
+            DataRow row = objectsTable.Rows.Find(object_id);
+
+            if (row == null) return iExtensibleNumber;
+
+            DataRow[] rows = row.GetChildRows("object_switches");
+            foreach(DataRow switchrow in rows) 
+            {
+                if (switchrow["object_switch"] == @"\extensible") 
+                {
+                    iExtensibleNumber = Convert.ToInt32(switchrow["object_switch_value"].ToString());
+                }
+
+            }
+            
+            return iExtensibleNumber;
                 
         }
 

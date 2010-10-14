@@ -141,15 +141,7 @@ namespace EnergyPlus
                      
                     
                 }
-                //Check if it is object is extensible.
 
-
-                //find out which field is the /begin-extensible field.
-                //Copy Table and rename. 
-                //remove columns, add objectID field. 
-                //Remove Columns from newTable. 
-                //Create a new extensible table. 
-                //make a relation to that table and the new table, and the object_id and the Object ID in the
 
             }
         
