@@ -245,6 +245,8 @@ namespace EnergyPlus
 
             foreach (DataTable table in idfDataSet.Tables)
             {
+                if (table.TableName != "commands")
+                {
                     foreach(DataRow row in table.Rows) 
                     {
                         string tempstring1 = table.TableName;
@@ -255,6 +257,7 @@ namespace EnergyPlus
                         tempstring1 += ";"; 
                         tw.WriteLine(tempstring1);
                     }
+                }
             }
             tw.Close();
 
