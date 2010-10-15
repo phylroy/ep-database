@@ -105,7 +105,15 @@ namespace EnergyPlus
 
                         if (row[2].ToString() == @"\begin-extensible")
                         {
+                            //Create new table to contain extensible data. 
                             newTable = idfDataSet.Tables.Add(objectRow["object_name"].ToString()+"_Extensible");
+                            //Add command_id Column
+                            newTable.Columns.Add("command_id", typeof(Int32));
+                            //Create Command <-> Command_extensible Relationship.
+                            idfDataSet.Relations.Add(new DataRelation("CommandIDto" + objectRow["object_name"].ToString()+"_extensible",
+                                idfDataSet.Tables["commands"].Columns["command_id"],
+                                newTable.Columns["command_id"])
+                                );
                         }
                     }
 
@@ -196,6 +204,8 @@ namespace EnergyPlus
                         //find object id. 
                         int object_id = epidd.GetObjectIDFromObjectName(object_name);
                         int NumberOfFields = epidd.GetNumberOfFieldsFromObjectID(object_id);
+                        int NumberOfExtensible = epidd.GetObjectExtensibleNumber(object_id);
+                        int MinNumOfFields = epidd.GetObjectsMinNumOfFields(object_id);
                         //Add command to command table. 
                         DataRow command_row = idfDataSet.Tables["commands"].Rows.Add();
                         command_row["object_id"] = object_id; 
@@ -206,8 +216,21 @@ namespace EnergyPlus
                         DataTable table = idfDataSet.Tables[items[0].Trim()];
                         DataRow row = table.Rows.Add();
                         row["command_id"] = command_row["command_id"];
-                        for (int i = 1; i < items.Length; i++)
+                        int iFieldCount = 0; 
+                        if (NumberOfExtensible == 0)
                         {
+
+                            iFieldCount = items.Length;
+
+                        }
+                        else
+                        {
+                            iFieldCount = NumberOfFields - NumberOfExtensible +1;
+                        }
+
+                        for (int i = 1; i < iFieldCount; i++)
+                        {
+
                             row[i] = items[i];
                         }
                         tempstring = "";               
