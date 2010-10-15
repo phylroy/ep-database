@@ -71,7 +71,10 @@ namespace EnergyPlus
             IDD = new DataSet("DataDictionary");
             //Create Objects Table.
             objectsTable = IDD.Tables.Add("objects");
+            DataColumn[] keys = new DataColumn[1];
             DataColumn column = objectsTable.Columns.Add("object_id", typeof(Int32));
+            keys[0] = column;
+            objectsTable.PrimaryKey = keys;
             column.AutoIncrement = true; column.Unique = true;
             objectsTable.Columns.Add("object_name", typeof(string));
             objectsTable.Columns.Add("group", typeof(string));
@@ -79,7 +82,7 @@ namespace EnergyPlus
             //Create object Switches Table.
             objectsSwitchesTable = IDD.Tables.Add("object_switches");
             column = objectsSwitchesTable.Columns.Add("object_switch_id", typeof(Int32));
-            column.AutoIncrement = true; column.Unique = true;
+            column.AutoIncrement = true; column.Unique = true; 
             objectsSwitchesTable.Columns.Add("object_id", System.Type.GetType("System.Int32"));
             objectsSwitchesTable.Columns.Add("object_switch", typeof(string));
             objectsSwitchesTable.Columns.Add("object_switch_value", typeof(string));
@@ -368,10 +371,10 @@ namespace EnergyPlus
 
             if (row == null) return iExtensibleNumber;
 
-            DataRow[] rows = row.GetChildRows("object_switches");
+            DataRow[] rows = row.GetChildRows("ObjectSwitches");
             foreach(DataRow switchrow in rows) 
             {
-                if (switchrow["object_switch"] == @"\extensible") 
+                if (switchrow["object_switch"].ToString() == @"\extensible") 
                 {
                     iExtensibleNumber = Convert.ToInt32(switchrow["object_switch_value"].ToString());
                 }
@@ -381,6 +384,28 @@ namespace EnergyPlus
             return iExtensibleNumber;
                 
         }
+
+        public int GetObjectsMinNumOfFields(int object_id)
+        {
+            int iMinNumbOfFields = 0;
+            DataRow row = objectsTable.Rows.Find(object_id);
+
+            if (row == null) return iMinNumbOfFields;
+
+            DataRow[] rows = row.GetChildRows("ObjectSwitches");
+            foreach (DataRow switchrow in rows)
+            {
+                if (switchrow["object_switch"].ToString() == @"\min-fields")
+                {
+                    iMinNumbOfFields = Convert.ToInt32(switchrow["object_switch_value"].ToString());
+                }
+
+            }
+
+            return iMinNumbOfFields;
+
+        }
+
 
 
         //Field query Functions. 
