@@ -524,5 +524,125 @@ namespace EnergyPlus
                 table.WriteXmlSchema(filename);
             }
         }
+
+
+
+
+        public void CreateReferenceListTable()
+
+        {
+
+
+
+            var query =
+            from object1 in IDD.Tables["fields"].AsEnumerable()
+            join object_sw in IDD.Tables["field_switches"].AsEnumerable()
+            on object1.Field<Int32>("field_id") equals
+                object_sw.Field<Int32>("field_id")
+            where object_sw.Field<String>("field_switch") == @"\reference"
+            select
+            new
+            {
+                object_id = object1.Field<Int32>("object_id"),
+                field_id = object_sw.Field<Int32>("field_id"),
+                field_switch = object_sw.Field<String>("field_switch"),
+                field_switch_value = object_sw.Field<String>("field_switch_value")
+            };
+
+            
+
+
+
+            DataTable Table = ConvertToDataTable(query);
+
+
+            var distinctValues = Table.AsEnumerable()
+                        .Select(row => new
+                        {
+                            attribute1_name = row.Field<string>("field_switch_value")
+                        })
+                        .Distinct();
+            DataTable Table2 = ConvertToDataTable(distinctValues);
+            DataTable objectList = IDD.Tables.Add("object_lists");
+            DataColumn column1 = objectList.Columns.Add("object_list_id",typeof(Int32));
+            DataColumn[] keys = new DataColumn[1];
+            keys[0] = column1;
+            objectList.PrimaryKey = keys;
+            column1.AutoIncrement = true; column1.Unique = true;
+            objectList.Columns.Add("object_list_name", typeof(String));
+
+            foreach( DataRow row in Table2.Rows)
+            {
+                string rtr = row[0].ToString();
+                DataRow newrow = objectList.Rows.Add();
+                newrow["object_list_name"] = row[0].ToString();
+            }
+
+            //Create Table.
+            DataTable RefTable = IDD.Tables.Add("references");
+            DataColumn column = RefTable.Columns.Add("reference_list_id", typeof(Int32));
+            column.AutoIncrement = true; column.Unique = true;
+            DataColumn[] key2 = new DataColumn[1];
+            key2[0] = column;
+            RefTable.PrimaryKey = key2;
+            RefTable.Columns.Add("object_list_id", System.Type.GetType("System.Int32"));
+            RefTable.Columns.Add("field_id", System.Type.GetType("System.Int32"));
+            RefTable.Columns.Add("object_id", System.Type.GetType("System.Int32"));
+
+            IDD.Relations.Add(new DataRelation("ObjectListRelation",
+                IDD.Tables["object_lists"].Columns["object_list_id"],
+                IDD.Tables["references"].Columns["object_list_id"]));
+
+
+
+
+            var query3 =
+            from object1 in Table.AsEnumerable()
+            join object_sw in IDD.Tables["object_lists"].AsEnumerable()
+            on object1.Field<String>("field_switch_value") equals
+                object_sw.Field<String>("object_list_name")
+            select
+            new
+            {   
+                object_id = object1.Field<Int32>("object_id"),
+                field_id = object1.Field<Int32>("field_id"),
+                object_list_id = object_sw.Field<Int32>("object_list_id"),
+               
+            };
+
+            DataTable Table4 = ConvertToDataTable(query3);
+
+            foreach (DataRow row11 in Table4.Rows)
+
+            { 
+                DataRow newrow = RefTable.Rows.Add();
+
+                newrow["object_id"] = row11["object_id"];
+                newrow["field_id"] = row11["field_id"];
+                newrow["object_list_id"] = row11["object_list_id"];
+            }
+
+
+            //ObjectListsTable
+              //      ObjectID,FieldID,ObjectListID,
+
+           //ObjectLists
+             //       ObjectListID, ObjectListIDName
+
+
+
+            
+            
+
+            
+            //iterate each fields
+            //find fields with switch = @"\reference"
+            //add field_id and object_id to list with list name to list.
+
+
+
+
+        }
+
     }
 }
