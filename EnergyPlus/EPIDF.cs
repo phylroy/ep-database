@@ -157,7 +157,7 @@ namespace EnergyPlus
 
         public void ReadIDFFile(string path)
         {
-            TextWriter tw = new StreamWriter(@"C:\date.txt");
+            
             // Reads and parses the file into string list. 
             List<string> idfListString = new List<string>();
             using (StreamReader reader = new StreamReader(path))
@@ -166,7 +166,7 @@ namespace EnergyPlus
                 while ((line = reader.ReadLine()) != null)
                 {
                     idfListString.Add(line);          // Add to list.
-                    Console.WriteLine(line); // Write to console.
+
                 }
             }
             
@@ -176,7 +176,7 @@ namespace EnergyPlus
                 //Remove comments. 
                 string sline = line;
                 sline = Regex.Replace(line, @"(^\s*.*)(!.*)", @"$1");
-                tw.WriteLine(sline);
+
                 //check if line is a blank or whitespace only.
                 if (sline != "" || !Regex.IsMatch(sline,@"^\s*$") )
                 {
