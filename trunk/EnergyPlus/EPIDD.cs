@@ -622,22 +622,28 @@ namespace EnergyPlus
                 newrow["object_list_id"] = row11["object_list_id"];
             }
 
-
-            //ObjectListsTable
-              //      ObjectID,FieldID,ObjectListID,
-
-           //ObjectLists
-             //       ObjectListID, ObjectListIDName
+//object list
 
 
 
-            
-            
+            var query7 =
+from field in IDD.Tables["fields"].AsEnumerable()
+join fieldswitches in IDD.Tables["field_switches"].AsEnumerable() 
+        on field.Field<Int32>("field_id") equals fieldswitches.Field<Int32>("field_id")
 
-            
-            //iterate each fields
-            //find fields with switch = @"\reference"
-            //add field_id and object_id to list with list name to list.
+join objectlist in IDD.Tables["object_lists"].AsEnumerable()
+        on fieldswitches.Field<string>("field_switch_value") equals objectlist.Field<string>("object_list_name")
+
+
+where fieldswitches.Field<String>("field_switch") == @"\object-list"
+select new
+{  
+    object_id = field.Field<Int32>("object_id"),
+    field_id = field.Field<Int32>("field_id"),
+    field_switch_value = fieldswitches.Field<String>("field_switch_value"),
+    object_list_id = objectlist.Field<Int32>("object_list_id")
+
+};
 
 
 
@@ -646,3 +652,5 @@ namespace EnergyPlus
 
     }
 }
+
+
