@@ -17,6 +17,8 @@ namespace EnergyPlus
         DataTable fieldsTable;
         DataTable fieldSwitchesTable;
 
+
+
         string[] FileAsString;
 
         //Methods to Create Databases.
@@ -531,9 +533,6 @@ namespace EnergyPlus
         public void CreateReferenceListTable()
 
         {
-
-
-
             var query =
             from object1 in IDD.Tables["fields"].AsEnumerable()
             join object_sw in IDD.Tables["field_switches"].AsEnumerable()
@@ -550,9 +549,6 @@ namespace EnergyPlus
             };
 
             
-
-
-
             DataTable Table = ConvertToDataTable(query);
 
 
@@ -627,28 +623,103 @@ namespace EnergyPlus
 
 
             var query7 =
-from field in IDD.Tables["fields"].AsEnumerable()
-join fieldswitches in IDD.Tables["field_switches"].AsEnumerable() 
-        on field.Field<Int32>("field_id") equals fieldswitches.Field<Int32>("field_id")
+            from field in IDD.Tables["fields"].AsEnumerable()
+            join fieldswitches in IDD.Tables["field_switches"].AsEnumerable() 
+            on field.Field<Int32>("field_id") equals fieldswitches.Field<Int32>("field_id")
 
-join objectlist in IDD.Tables["object_lists"].AsEnumerable()
-        on fieldswitches.Field<string>("field_switch_value") equals objectlist.Field<string>("object_list_name")
-
-
-where fieldswitches.Field<String>("field_switch") == @"\object-list"
-select new
-{  
-    object_id = field.Field<Int32>("object_id"),
-    field_id = field.Field<Int32>("field_id"),
-    field_switch_value = fieldswitches.Field<String>("field_switch_value"),
-    object_list_id = objectlist.Field<Int32>("object_list_id")
-
-};
+            join objectlist in IDD.Tables["object_lists"].AsEnumerable()
+            on fieldswitches.Field<string>("field_switch_value") equals objectlist.Field<string>("object_list_name")
 
 
+            where fieldswitches.Field<String>("field_switch") == @"\object-list"
+            select new
+            {  
+            object_id = field.Field<Int32>("object_id"),
+            field_id = field.Field<Int32>("field_id"),
+            field_switch_value = fieldswitches.Field<String>("field_switch_value"),
+            object_list_id = objectlist.Field<Int32>("object_list_id")
+            };
 
+            DataTable Table5 = ConvertToDataTable(query7);
+
+
+            //Create Table.
+            DataTable DepTable = IDD.Tables.Add("dependancies");
+            DataColumn column2 = DepTable.Columns.Add("dependance_id", typeof(Int32));
+            column2.AutoIncrement = true; column.Unique = true;
+            DataColumn[] key3 = new DataColumn[1];
+            key3[0] = column2;
+            DepTable.PrimaryKey = key3;
+            DepTable.Columns.Add("object_list_id", System.Type.GetType("System.Int32"));
+            DepTable.Columns.Add("field_id", System.Type.GetType("System.Int32"));
+            DepTable.Columns.Add("object_id", System.Type.GetType("System.Int32"));
+
+
+            foreach (DataRow row11 in Table5.Rows)
+            {
+                DataRow newrow = DepTable.Rows.Add();
+                newrow["object_id"]      = row11["object_id"];
+                newrow["field_id"]       = row11["field_id"];
+                newrow["object_list_id"] = row11["object_list_id"];
+            }
+        }
+
+
+
+
+        public List<int> GetChildObjectIDs(int object_id){
+        
+        DataTable fields = IDD.Tables["fields"];
+        DataTable objects = IDD.Tables["objects"];
+        DataTable references = IDD.Tables["references"];
+        DataTable object_lists = IDD.Tables["object_lists"];
+        DataTable dependancies = IDD.Tables["dependancies"];
+
+        //find all 
+        var listofobjectlistsrt =
+        (from reference in references.AsEnumerable()
+        join dependacy in dependancies.AsEnumerable()
+        on reference.Field<Int32>("object_list_id") equals dependacy.Field<Int32>("object_list_id")
+        where reference.Field<Int32>("object_id") == object_id
+        select dependacy.Field<Int32>("object_id")).Distinct();
+        //Convert query to list of ints. 
+        List<int> children = listofobjectlistsrt.ToList<int>();
+        children.Sort();
+
+        return children;
+        
+        }
+
+
+        public List<string> GetChildObjectIDStrings(int object_id)
+        {
+
+            DataTable fields = IDD.Tables["fields"];
+            DataTable objects = IDD.Tables["objects"];
+            DataTable references = IDD.Tables["references"];
+            DataTable object_lists = IDD.Tables["object_lists"];
+            DataTable dependancies = IDD.Tables["dependancies"];
+
+            //find all 
+            var listofobjectlistsrt =
+            (from reference in references.AsEnumerable()
+             join dependacy in dependancies.AsEnumerable()
+             on reference.Field<Int32>("object_list_id") equals dependacy.Field<Int32>("object_list_id")
+             join object1 in objects.AsEnumerable()
+             on dependacy.Field<Int32>("object_id") equals object1.Field<Int32>("object_id")
+             where reference.Field<Int32>("object_id") == object_id
+             select object1.Field<String>("object_name")).Distinct();
+            //Convert query to list of ints. 
+            List<string> children = listofobjectlistsrt.ToList<string>();
+            children.Sort();
+
+            return children;
 
         }
+
+
+
+
 
     }
 }
