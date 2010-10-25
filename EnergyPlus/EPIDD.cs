@@ -17,6 +17,18 @@ namespace EnergyPlus
         DataTable fieldsTable;
         DataTable fieldSwitchesTable;
 
+        //**********Datatable Groups
+        const string GroupTableName = "groups";
+        DataTable GroupsTable;
+
+        const string GroupIDColumnHeader = @"group_id";
+        DataColumn groups_group_id_column;
+
+        const string GroupNameColumnHeader = @"group_name";
+        DataColumn groups_group_name_column;
+
+
+
         //***********DataTable objects
         const string ObjectTableName = @"objects";
         DataTable ObjectsTable;
@@ -28,11 +40,8 @@ namespace EnergyPlus
         const string ObjectNameColumnHeader = @"object_name";
         DataColumn objects_object_name_column;
 
-        const string GroupIDColumnHeader = @"group_id";
+        //Uses same header as in the group table.
         DataColumn objects_group_id_column;
-
-        const string GroupNameColumnHeader = @"group_name";
-        DataColumn objects_group_name_column;
 
 
         //************DataTable for object switches.
@@ -71,17 +80,34 @@ namespace EnergyPlus
 
             IDD = new DataSet("DataDictionary");
 
+
+            //Create Groups Table
+            GroupsTable = IDD.Tables.Add(GroupTableName);
+
+            groups_group_id_column = GroupsTable.Columns.Add(GroupIDColumnHeader, typeof(Int32));
+            groups_group_name_column = GroupsTable.Columns.Add(GroupNameColumnHeader, typeof(String));
+            groups_group_id_column.AutoIncrement = true; ; groups_group_id_column.Unique = true;
+            GroupsTable.PrimaryKey = new DataColumn[] { groups_group_id_column };
+
+
             //Create Objects Table.
             ObjectsTable = IDD.Tables.Add(ObjectTableName);
 
             //Add Columns to the Objects Table
             objects_object_id_column = ObjectsTable.Columns.Add(ObjectIDColumnHeader, typeof(Int32));
             objects_object_name_column = ObjectsTable.Columns.Add(ObjectNameColumnHeader, typeof(String));
-            objects_group_name_column = ObjectsTable.Columns.Add(GroupNameColumnHeader, typeof(String));
+
             objects_group_id_column = ObjectsTable.Columns.Add(GroupIDColumnHeader, typeof(Int32));
             //Set the primary key. 
             objects_object_id_column.AutoIncrement = true; ; objects_object_id_column.Unique = true;
             ObjectsTable.PrimaryKey = new DataColumn[] { objects_object_id_column };
+
+
+            //Create Groups <-> Object Relationship. 
+            IDD.Relations.Add(new DataRelation("GroupsToObjectsRelation",
+                groups_group_id_column,objects_group_id_column
+                ));
+
 
             //Create object Switches Table.
             ObjectsSwitchesTable = IDD.Tables.Add(ObjectSwitchesTableName);
@@ -182,6 +208,7 @@ namespace EnergyPlus
             // group switch. 
             Regex group_regex = new Regex(@"^\s*(\\group)\s*(.*)$", RegexOptions.IgnoreCase);
             String current_group = "";
+            int current_id = 0;
             int iExtensible = 0;
             bool bBeginExtensible = false;
             foreach (string line in StringList)
@@ -194,6 +221,9 @@ namespace EnergyPlus
                     if (group_match.Success)
                     {
                         current_group = group_match.Groups[2].ToString().Trim();
+                        DataRow row = GroupsTable.Rows.Add();
+                        row[groups_group_name_column] = current_group;
+                        current_id =  Convert.ToInt32(row[groups_group_id_column]);
                     }
 
                     Match object_match = object_regex.Match(line);
@@ -205,7 +235,7 @@ namespace EnergyPlus
                         iExtensible = 0; 
                         bBeginExtensible = false;
                         row[ObjectNameColumnHeader] = object_match.Groups[1].ToString().Trim();
-                        row[GroupNameColumnHeader] = current_group;
+                        row[GroupIDColumnHeader] = current_id;
                         current_obj_id = (int)row[ObjectIDColumnHeader];
                         current_field_id = -1;
                         field_counter = 0;
