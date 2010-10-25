@@ -97,7 +97,6 @@ namespace EnergyPlusLib
                     DataColumn column = new DataColumn(fieldRow["field_name"].ToString());
                     //Console.WriteLine(objectRow["object_name"].ToString() + fieldRow["field_name"].ToString());
                     string datatype = null;
-                    Console.WriteLine(fieldRow["field_name"].ToString());
                     int field_id = (int)fieldRow["field_id"];
                     
                     foreach (DataRow row in fieldSwitchRows)

@@ -161,13 +161,11 @@ namespace EnergyPlusLib
             foreach (string line in FileAsString)
             {
                 Match m = r.Match(line);
-                //Console.WriteLine(line);
+
                 if (m.Success)
                 {
                     conversionTable.Rows.Add(m.Groups[1], m.Groups[2], Convert.ToDouble(m.Groups[3].ToString()));
-                    Console.WriteLine(conversionTable);
-                    Console.WriteLine(m.Groups[2]);
-                    Console.WriteLine(m.Groups[3]);
+
                 }
             }
 
