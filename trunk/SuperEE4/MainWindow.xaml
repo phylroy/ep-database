@@ -1,8 +1,56 @@
 ﻿<Window x:Class="SuperEE4.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:SuperEE4"
         Title="MainWindow" Height="350" Width="525">
+    <Window.Resources>
+        <!-- Creates a DataSet with 
+         two related DataTables. -->
+        <ObjectDataProvider 
+      x:Key="dataSetProvider" 
+      MethodName="CreateDataSet" 
+      ObjectType="{x:Type local:IDDDataCreator}" 
+      />
+
+        <!-- Displays a row in the 'Detail' table 
+         (i.e. the child table). -->
+        <DataTemplate x:Key="FieldLevel">
+            <TextBlock Text="{Binding field_name}" />
+        </DataTemplate>
+
+        <!-- Displays a row in the 'Master' table 
+         (i.e. the parent table). Pulls it's 
+         child items from the 'Master2Detail' 
+         DataRelation in the DataSet.  
+         Each child row is displayed via the 
+         'DetailTemplate'. -->
+
+        <HierarchicalDataTemplate 
+      x:Key="CommandLevel" 
+      ItemsSource="{Binding ObjectsToFieldsRelation}" 
+      ItemTemplate="{StaticResource FieldLevel}"
+      >
+            <TextBlock Text="{Binding object_name}" />
+        </HierarchicalDataTemplate>
+
+
+        <HierarchicalDataTemplate 
+      x:Key="GroupLevel" 
+      ItemsSource="{Binding GroupsToObjectsRelation}" 
+      ItemTemplate="{StaticResource CommandLevel}"
+      >
+            <TextBlock Text="{Binding group_name}" />
+        </HierarchicalDataTemplate>
+
+
+
+    </Window.Resources>
+
     <Grid>
-        
+        <TreeView 
+      DataContext="{StaticResource dataSetProvider}" 
+      ItemsSource="{Binding groups}"
+      ItemTemplate="{StaticResource GroupLevel}" 
+      />
     </Grid>
 </Window>
