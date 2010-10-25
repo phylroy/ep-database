@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnergyPlus", "EnergyPlus\EnergyPlus.csproj", "{3F69FAD3-1483-468C-B531-5248BC7661A8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{654C9538-5233-4E92-A3EE-1E3685032C2E} = {654C9538-5233-4E92-A3EE-1E3685032C2E}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperEE4", "SuperEE4\SuperEE4.csproj", "{63308008-77DE-4860-97A9-1D792EE84470}"
 EndProject

@@ -9,7 +9,7 @@ using System.Reflection;
 
 namespace EnergyPlusLib
 {
-    class EPIDF
+    public class EPIDF
     {
         public EPIDD epidd;
         public DataSet idfDataSet;

@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 namespace EnergyPlusLib
 {
-    class EPIDD
+    public class EPIDD
     {
         //Members
         public DataSet IDD;
