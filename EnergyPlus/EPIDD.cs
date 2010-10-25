@@ -12,10 +12,48 @@ namespace EnergyPlus
     {
         //Members
         public DataSet IDD;
-        DataTable objectsTable;
-        DataTable objectsSwitchesTable;
+        
+
         DataTable fieldsTable;
         DataTable fieldSwitchesTable;
+
+        //***********DataTable objects
+        const string ObjectTableName = @"objects";
+        DataTable ObjectsTable;
+
+        //DataTable objects columns.
+        const string ObjectIDColumnHeader = @"object_id";
+        DataColumn objects_object_id_column;
+
+        const string ObjectNameColumnHeader = @"object_name";
+        DataColumn objects_object_name_column;
+
+        const string GroupIDColumnHeader = @"group_id";
+        DataColumn objects_group_id_column;
+
+        const string GroupNameColumnHeader = @"group_name";
+        DataColumn objects_group_name_column;
+
+
+        //************DataTable for object switches.
+
+        const string ObjectSwitchesTableName = "object_switches";
+        DataTable ObjectsSwitchesTable;
+
+        //DataTable objects columns.
+
+        const string ObjectSwitchIDColumnHeader = @"object_switch_id";
+        DataColumn object_switches_switch_id_column;
+
+        //same header as in objects table for object_id.
+        DataColumn object_switches_object_id_column;
+
+        const string ObjectSwitchNameColumnHeader = @"object_switch";
+        DataColumn object_switches_switch_name_column;
+
+        const string ObjectSwitchValueColumnHeader = @"object_switch_value";
+        DataColumn object_switches_switch_value_column;
+
 
 
 
@@ -24,46 +62,7 @@ namespace EnergyPlus
         //Methods to Create Databases.
         private static EPIDD instance = new EPIDD();
         public static  EPIDD GetInstance() { return instance; }
-        public DataTable    ConvertToDataTable<T>(IEnumerable<T> varlist)
-        {
-            DataTable dtReturn = new DataTable();
-
-            // column names   
-            PropertyInfo[] oProps = null;
-
-            if (varlist == null) return dtReturn;
-
-            foreach (T rec in varlist)
-            {
-                // Use reflection to get property names, to create table, Only first time, others will follow   
-                if (oProps == null)
-                {
-                    oProps = ((Type)rec.GetType()).GetProperties();
-                    foreach (PropertyInfo pi in oProps)
-                    {
-                        Type colType = pi.PropertyType;
-
-                        if ((colType.IsGenericType) && (colType.GetGenericTypeDefinition() == typeof(Nullable<>)))
-                        {
-                            colType = colType.GetGenericArguments()[0];
-                        }
-
-                        dtReturn.Columns.Add(new DataColumn(pi.Name, colType));
-                    }
-                }
-
-                DataRow dr = dtReturn.NewRow();
-
-                foreach (PropertyInfo pi in oProps)
-                {
-                    dr[pi.Name] = pi.GetValue(rec, null) == null ? DBNull.Value : pi.GetValue
-                    (rec, null);
-                }
-
-                dtReturn.Rows.Add(dr);
-            }
-            return dtReturn;
-        }
+        
         private             EPIDD()
         {
 
@@ -71,41 +70,44 @@ namespace EnergyPlus
             FileAsString = File.ReadAllLines(@"C:\EnergyPlusV5-0-0\energy+.idd");
 
             IDD = new DataSet("DataDictionary");
+
             //Create Objects Table.
-            objectsTable = IDD.Tables.Add("objects");
-            DataColumn[] keys = new DataColumn[1];
-            DataColumn column = objectsTable.Columns.Add("object_id", typeof(Int32));
-            keys[0] = column;
-            objectsTable.PrimaryKey = keys;
-            column.AutoIncrement = true; column.Unique = true;
-            objectsTable.Columns.Add("object_name", typeof(string));
-            objectsTable.Columns.Add("group", typeof(string));
+            ObjectsTable = IDD.Tables.Add(ObjectTableName);
+
+            //Add Columns to the Objects Table
+            objects_object_id_column = ObjectsTable.Columns.Add(ObjectIDColumnHeader, typeof(Int32));
+            objects_object_name_column = ObjectsTable.Columns.Add(ObjectNameColumnHeader, typeof(String));
+            objects_group_name_column = ObjectsTable.Columns.Add(GroupNameColumnHeader, typeof(String));
+            objects_group_id_column = ObjectsTable.Columns.Add(GroupIDColumnHeader, typeof(Int32));
+            //Set the primary key. 
+            objects_object_id_column.AutoIncrement = true; ; objects_object_id_column.Unique = true;
+            ObjectsTable.PrimaryKey = new DataColumn[] { objects_object_id_column };
 
             //Create object Switches Table.
-            objectsSwitchesTable = IDD.Tables.Add("object_switches");
-            column = objectsSwitchesTable.Columns.Add("object_switch_id", typeof(Int32));
-            column.AutoIncrement = true; column.Unique = true; 
-            objectsSwitchesTable.Columns.Add("object_id", System.Type.GetType("System.Int32"));
-            objectsSwitchesTable.Columns.Add("object_switch", typeof(string));
-            objectsSwitchesTable.Columns.Add("object_switch_value", typeof(string));
+            ObjectsSwitchesTable = IDD.Tables.Add(ObjectSwitchesTableName);
+            DataColumn column = ObjectsSwitchesTable.Columns.Add(ObjectSwitchIDColumnHeader, typeof(Int32));
+            column.AutoIncrement = true; column.Unique = true;
+            ObjectsSwitchesTable.Columns.Add(ObjectIDColumnHeader, typeof(Int32));
+            ObjectsSwitchesTable.Columns.Add(ObjectSwitchNameColumnHeader, typeof(string));
+            ObjectsSwitchesTable.Columns.Add(ObjectSwitchValueColumnHeader, typeof(string));
 
             //Create Object <-> Switches Relationship.
             IDD.Relations.Add(new DataRelation("ObjectSwitches",
-                IDD.Tables["objects"].Columns["object_id"],
-                IDD.Tables["object_switches"].Columns["object_id"]));
+                ObjectsTable.Columns[ObjectIDColumnHeader],
+                ObjectsSwitchesTable.Columns[ObjectIDColumnHeader]));
 
             //Create Fields Table.
             fieldsTable = IDD.Tables.Add("fields");
             column = fieldsTable.Columns.Add("field_id", typeof(Int32));
             column.AutoIncrement = true; column.Unique = true;
-            fieldsTable.Columns.Add("object_id", System.Type.GetType("System.Int32"));
+            fieldsTable.Columns.Add(ObjectIDColumnHeader, System.Type.GetType("System.Int32"));
             fieldsTable.Columns.Add("field_name", typeof(string));
             fieldsTable.Columns.Add("field_position", System.Type.GetType("System.Int32"));
 
             //Create Object <-> Fields Relationship. 
             IDD.Relations.Add(new DataRelation("ObjectFields",
-                IDD.Tables["objects"].Columns["object_id"],
-                IDD.Tables["fields"].Columns["object_id"]));
+                IDD.Tables["objects"].Columns[ObjectIDColumnHeader],
+                IDD.Tables["fields"].Columns[ObjectIDColumnHeader]));
 
             //Create Field switches table. 
             fieldSwitchesTable = IDD.Tables.Add("field_switches");
@@ -202,9 +204,9 @@ namespace EnergyPlus
                         DataRow row = objectTable.Rows.Add();
                         iExtensible = 0; 
                         bBeginExtensible = false;
-                        row["object_name"] = object_match.Groups[1].ToString().Trim();
-                        row["group"] = current_group;
-                        current_obj_id = (int)row["object_id"];
+                        row[ObjectNameColumnHeader] = object_match.Groups[1].ToString().Trim();
+                        row[GroupNameColumnHeader] = current_group;
+                        current_obj_id = (int)row[ObjectIDColumnHeader];
                         current_field_id = -1;
                         field_counter = 0;
                     }
@@ -218,7 +220,7 @@ namespace EnergyPlus
                         DataRow row = fieldsTable.Rows.Add();
                         current_field_id = (int)row["field_id"];
                         row["field_name"] = field_match.Groups[4].ToString().Trim();
-                        row["object_id"] = current_obj_id;
+                        row[ObjectIDColumnHeader] = current_obj_id;
                         row["field_position"] = field_counter++;
 
                         DataRow switchrow = IDD.Tables["field_switches"].Rows.Add();
@@ -238,22 +240,22 @@ namespace EnergyPlus
                         {
                             //Since this is an object switch, save to object switch table. 
 
-                                DataRow row = IDD.Tables["object_switches"].Rows.Add();
-                                row["object_id"] = current_obj_id;
+                                DataRow row = IDD.Tables[ObjectSwitchesTableName].Rows.Add();
+                                row[ObjectIDColumnHeader] = current_obj_id;
                                 if (switch_match.Groups[1].ToString().Trim().Contains(@"\extensible"))
                                 {
                                     string temp = switch_match.Groups[1].ToString().Trim();
                                     Match extensible_match = extensible_regex.Match(temp);
                                     //string valuestring = temp.Substring(position + 1, 2);
 
-                                    row["object_switch"] = extensible_match.Groups[1].ToString().Trim();
-                                    row["object_switch_value"] = extensible_match.Groups[2].ToString().Trim();
-                                    iExtensible = Convert.ToInt32(row["object_switch_value"].ToString());
+                                    row[ObjectSwitchNameColumnHeader] = extensible_match.Groups[1].ToString().Trim();
+                                    row[ObjectSwitchValueColumnHeader] = extensible_match.Groups[2].ToString().Trim();
+                                    iExtensible = Convert.ToInt32(row[ObjectSwitchValueColumnHeader].ToString());
                                 }
                                 else
                                 {
-                                    row["object_switch"] = switch_match.Groups[1].ToString().Trim();
-                                    row["object_switch_value"] = switch_match.Groups[2].ToString().Trim();
+                                    row[ObjectSwitchNameColumnHeader] = switch_match.Groups[1].ToString().Trim();
+                                    row[ObjectSwitchValueColumnHeader] = switch_match.Groups[2].ToString().Trim();
                                 }
                         }
                         if (current_field_id != -1 && !(bBeginExtensible == true && iExtensible <= 0))
@@ -286,7 +288,7 @@ namespace EnergyPlus
         {
             var query =
                 from object1 in IDD.Tables["objects"].AsEnumerable()
-                select object1.Field<Int32>("object_id");
+                select object1.Field<Int32>(ObjectIDColumnHeader);
             return EnumerableRowToListofInts(query);
         }
 
@@ -303,8 +305,8 @@ namespace EnergyPlus
         {
             var query =
               from object1 in IDD.Tables["objects"].AsEnumerable()
-              where object1.Field<String>("object_name") == name
-              select object1.Field<Int32>("object_id");
+              where object1.Field<String>(ObjectNameColumnHeader) == name
+              select object1.Field<Int32>(ObjectIDColumnHeader);
             return query.First();
 
         }
@@ -313,15 +315,15 @@ namespace EnergyPlus
             var query =
             from field in IDD.Tables["fields"].AsEnumerable()
             where field.Field<Int32>("field_id") == field_id
-            select field.Field<Int32>("object_id");
+            select field.Field<Int32>(ObjectIDColumnHeader);
             return (int)query.First();
         }
         public string       GetObjectNameFromObjectID(int object_id)
         {
             var query =
       from object1 in IDD.Tables["objects"].AsEnumerable()
-      where object1.Field<Int32>("object_id") == object_id
-      select object1.Field<String>("object_name");
+      where object1.Field<Int32>(ObjectIDColumnHeader) == object_id
+      select object1.Field<String>(ObjectNameColumnHeader);
             return query.First();
 
         }
@@ -330,9 +332,9 @@ namespace EnergyPlus
             var query =
             from object1 in IDD.Tables["objects"].AsEnumerable()
             join object_field in IDD.Tables["fields"].AsEnumerable()
-            on object1.Field<Int32>("object_id") equals
-            object_field.Field<Int32>("object_id")
-            where object_field.Field<Int32>("object_id") == object_id
+            on object1.Field<Int32>(ObjectIDColumnHeader) equals
+            object_field.Field<Int32>(ObjectIDColumnHeader)
+            where object_field.Field<Int32>(ObjectIDColumnHeader) == object_id
             select object_field.Field<Int32>("field_id");
             List<int> returnval = new List<int>();
             foreach (int value in query)
@@ -348,9 +350,9 @@ namespace EnergyPlus
             var query =
             from object1 in IDD.Tables["objects"].AsEnumerable()
             join object_field in IDD.Tables["fields"].AsEnumerable()
-            on object1.Field<Int32>("object_id") equals
-            object_field.Field<Int32>("object_id")
-            where object_field.Field<Int32>("object_id") == object_id
+            on object1.Field<Int32>(ObjectIDColumnHeader) equals
+            object_field.Field<Int32>(ObjectIDColumnHeader)
+            where object_field.Field<Int32>(ObjectIDColumnHeader) == object_id
             select object_field.Field<Int32>("field_id");
             return query.Count();
             
@@ -369,16 +371,16 @@ namespace EnergyPlus
         public int          GetObjectExtensibleNumber(int object_id)
         {
             int iExtensibleNumber = 0;
-            DataRow row = objectsTable.Rows.Find(object_id);
+            DataRow row = ObjectsTable.Rows.Find(object_id);
 
             if (row == null) return iExtensibleNumber;
 
             DataRow[] rows = row.GetChildRows("ObjectSwitches");
             foreach(DataRow switchrow in rows) 
             {
-                if (switchrow["object_switch"].ToString() == @"\extensible") 
+                if (switchrow[ObjectSwitchNameColumnHeader].ToString() == @"\extensible") 
                 {
-                    iExtensibleNumber = Convert.ToInt32(switchrow["object_switch_value"].ToString());
+                    iExtensibleNumber = Convert.ToInt32(switchrow[ObjectSwitchValueColumnHeader].ToString());
                 }
 
             }
@@ -390,16 +392,16 @@ namespace EnergyPlus
         public int GetObjectsMinNumOfFields(int object_id)
         {
             int iMinNumbOfFields = 0;
-            DataRow row = objectsTable.Rows.Find(object_id);
+            DataRow row = ObjectsTable.Rows.Find(object_id);
 
             if (row == null) return iMinNumbOfFields;
 
             DataRow[] rows = row.GetChildRows("ObjectSwitches");
             foreach (DataRow switchrow in rows)
             {
-                if (switchrow["object_switch"].ToString() == @"\min-fields")
+                if (switchrow[ObjectSwitchNameColumnHeader].ToString() == @"\min-fields")
                 {
-                    iMinNumbOfFields = Convert.ToInt32(switchrow["object_switch_value"].ToString());
+                    iMinNumbOfFields = Convert.ToInt32(switchrow[ObjectSwitchValueColumnHeader].ToString());
                 }
 
             }
@@ -542,7 +544,7 @@ namespace EnergyPlus
             select
             new
             {
-                object_id = object1.Field<Int32>("object_id"),
+                object_id = object1.Field<Int32>(ObjectIDColumnHeader),
                 field_id = object_sw.Field<Int32>("field_id"),
                 field_switch = object_sw.Field<String>("field_switch"),
                 field_switch_value = object_sw.Field<String>("field_switch_value")
@@ -583,7 +585,7 @@ namespace EnergyPlus
             RefTable.PrimaryKey = key2;
             RefTable.Columns.Add("object_list_id", System.Type.GetType("System.Int32"));
             RefTable.Columns.Add("field_id", System.Type.GetType("System.Int32"));
-            RefTable.Columns.Add("object_id", System.Type.GetType("System.Int32"));
+            RefTable.Columns.Add(ObjectIDColumnHeader, System.Type.GetType("System.Int32"));
 
             IDD.Relations.Add(new DataRelation("ObjectListRelation",
                 IDD.Tables["object_lists"].Columns["object_list_id"],
@@ -600,7 +602,7 @@ namespace EnergyPlus
             select
             new
             {   
-                object_id = object1.Field<Int32>("object_id"),
+                object_id = object1.Field<Int32>(ObjectIDColumnHeader),
                 field_id = object1.Field<Int32>("field_id"),
                 object_list_id = object_sw.Field<Int32>("object_list_id"),
                
@@ -613,7 +615,7 @@ namespace EnergyPlus
             { 
                 DataRow newrow = RefTable.Rows.Add();
 
-                newrow["object_id"] = row11["object_id"];
+                newrow[ObjectIDColumnHeader] = row11[ObjectIDColumnHeader];
                 newrow["field_id"] = row11["field_id"];
                 newrow["object_list_id"] = row11["object_list_id"];
             }
@@ -634,7 +636,7 @@ namespace EnergyPlus
             where fieldswitches.Field<String>("field_switch") == @"\object-list"
             select new
             {  
-            object_id = field.Field<Int32>("object_id"),
+            object_id = field.Field<Int32>(ObjectIDColumnHeader),
             field_id = field.Field<Int32>("field_id"),
             field_switch_value = fieldswitches.Field<String>("field_switch_value"),
             object_list_id = objectlist.Field<Int32>("object_list_id")
@@ -652,13 +654,13 @@ namespace EnergyPlus
             DepTable.PrimaryKey = key3;
             DepTable.Columns.Add("object_list_id", System.Type.GetType("System.Int32"));
             DepTable.Columns.Add("field_id", System.Type.GetType("System.Int32"));
-            DepTable.Columns.Add("object_id", System.Type.GetType("System.Int32"));
+            DepTable.Columns.Add(ObjectIDColumnHeader, System.Type.GetType("System.Int32"));
 
 
             foreach (DataRow row11 in Table5.Rows)
             {
                 DataRow newrow = DepTable.Rows.Add();
-                newrow["object_id"]      = row11["object_id"];
+                newrow[ObjectIDColumnHeader]      = row11[ObjectIDColumnHeader];
                 newrow["field_id"]       = row11["field_id"];
                 newrow["object_list_id"] = row11["object_list_id"];
             }
@@ -680,8 +682,8 @@ namespace EnergyPlus
         (from reference in references.AsEnumerable()
         join dependacy in dependancies.AsEnumerable()
         on reference.Field<Int32>("object_list_id") equals dependacy.Field<Int32>("object_list_id")
-        where reference.Field<Int32>("object_id") == object_id
-        select dependacy.Field<Int32>("object_id")).Distinct();
+        where reference.Field<Int32>(ObjectIDColumnHeader) == object_id
+        select dependacy.Field<Int32>(ObjectIDColumnHeader)).Distinct();
         //Convert query to list of ints. 
         List<int> children = listofobjectlistsrt.ToList<int>();
         children.Sort();
@@ -706,9 +708,9 @@ namespace EnergyPlus
              join dependacy in dependancies.AsEnumerable()
              on reference.Field<Int32>("object_list_id") equals dependacy.Field<Int32>("object_list_id")
              join object1 in objects.AsEnumerable()
-             on dependacy.Field<Int32>("object_id") equals object1.Field<Int32>("object_id")
-             where reference.Field<Int32>("object_id") == object_id
-             select object1.Field<String>("object_name")).Distinct();
+             on dependacy.Field<Int32>(ObjectIDColumnHeader) equals object1.Field<Int32>(ObjectIDColumnHeader)
+             where reference.Field<Int32>(ObjectIDColumnHeader) == object_id
+             select object1.Field<String>(ObjectNameColumnHeader)).Distinct();
             //Convert query to list of ints. 
             List<string> children = listofobjectlistsrt.ToList<string>();
             children.Sort();
@@ -718,7 +720,46 @@ namespace EnergyPlus
         }
 
 
+        public DataTable ConvertToDataTable<T>(IEnumerable<T> varlist)
+        {
+            DataTable dtReturn = new DataTable();
 
+            // column names   
+            PropertyInfo[] oProps = null;
+
+            if (varlist == null) return dtReturn;
+
+            foreach (T rec in varlist)
+            {
+                // Use reflection to get property names, to create table, Only first time, others will follow   
+                if (oProps == null)
+                {
+                    oProps = ((Type)rec.GetType()).GetProperties();
+                    foreach (PropertyInfo pi in oProps)
+                    {
+                        Type colType = pi.PropertyType;
+
+                        if ((colType.IsGenericType) && (colType.GetGenericTypeDefinition() == typeof(Nullable<>)))
+                        {
+                            colType = colType.GetGenericArguments()[0];
+                        }
+
+                        dtReturn.Columns.Add(new DataColumn(pi.Name, colType));
+                    }
+                }
+
+                DataRow dr = dtReturn.NewRow();
+
+                foreach (PropertyInfo pi in oProps)
+                {
+                    dr[pi.Name] = pi.GetValue(rec, null) == null ? DBNull.Value : pi.GetValue
+                    (rec, null);
+                }
+
+                dtReturn.Rows.Add(dr);
+            }
+            return dtReturn;
+        }
 
 
     }
