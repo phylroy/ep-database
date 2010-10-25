@@ -131,7 +131,7 @@ namespace EnergyPlusLib
             fieldsTable.Columns.Add("field_position", System.Type.GetType("System.Int32"));
 
             //Create Object <-> Fields Relationship. 
-            IDD.Relations.Add(new DataRelation("ObjectFields",
+            IDD.Relations.Add(new DataRelation("ObjectsToFieldsRelation",
                 IDD.Tables["objects"].Columns[ObjectIDColumnHeader],
                 IDD.Tables["fields"].Columns[ObjectIDColumnHeader]));
 
