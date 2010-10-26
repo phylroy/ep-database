@@ -23,3 +23,5 @@ C:\ep-database\EnergyPlus\obj\Debug\EnergyPlus.pdb
 C:\ep-database\EnergyPlus\bin\Debug\EnergyPlus.exe
 C:\ep-database\EnergyPlus\bin\Debug\EnergyPlus.pdb
 C:\ep-database\EnergyPlus\obj\Debug\ResolveAssemblyReference.cache
+C:\ep-database\EnergyPlus\bin\Debug\EnergyPlusLib.dll
+C:\ep-database\EnergyPlus\bin\Debug\EnergyPlusLib.pdb

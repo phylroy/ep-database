@@ -64,6 +64,9 @@ namespace EnergyPlusLib
         DataColumn object_switches_switch_value_column;
 
 
+        //DataRelations
+
+        public DataRelation ObjectsToFieldsRelation;
 
 
         string[] FileAsString;
@@ -131,9 +134,11 @@ namespace EnergyPlusLib
             fieldsTable.Columns.Add("field_position", System.Type.GetType("System.Int32"));
 
             //Create Object <-> Fields Relationship. 
-            IDD.Relations.Add(new DataRelation("ObjectsToFieldsRelation",
+            ObjectsToFieldsRelation = new DataRelation("ObjectsToFieldsRelation",
                 IDD.Tables["objects"].Columns[ObjectIDColumnHeader],
-                IDD.Tables["fields"].Columns[ObjectIDColumnHeader]));
+                IDD.Tables["fields"].Columns[ObjectIDColumnHeader]);
+
+            IDD.Relations.Add(ObjectsToFieldsRelation);
 
             //Create Field switches table. 
             fieldSwitchesTable = IDD.Tables.Add("field_switches");
