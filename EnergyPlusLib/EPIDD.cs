@@ -132,7 +132,7 @@ namespace EnergyPlusLib
             fieldsTable.Columns.Add(ObjectIDColumnHeader, System.Type.GetType("System.Int32"));
             fieldsTable.Columns.Add("field_name", typeof(string));
             fieldsTable.Columns.Add("field_position", System.Type.GetType("System.Int32"));
-
+            fieldsTable.Columns.Add("field_data_name", typeof(string));
             //Create Object <-> Fields Relationship. 
             ObjectsToFieldsRelation = new DataRelation("ObjectsToFieldsRelation",
                 IDD.Tables["objects"].Columns[ObjectIDColumnHeader],
@@ -254,6 +254,7 @@ namespace EnergyPlusLib
                         current_field_id = (int)row["field_id"];
                         row["field_name"] = field_match.Groups[4].ToString().Trim();
                         row[ObjectIDColumnHeader] = current_obj_id;
+                        row["field_data_name"] = field_match.Groups[1].ToString().Trim();
                         row["field_position"] = field_counter++;
 
                         DataRow switchrow = IDD.Tables["field_switches"].Rows.Add();
