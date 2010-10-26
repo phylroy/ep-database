@@ -90,7 +90,7 @@ namespace EnergyPlusLib
                     newTable.Columns["command_id"])
                     );
 
-                DataRow[] fields = objectRow.GetChildRows("ObjectFields");
+                DataRow[] fields = objectRow.GetChildRows(epidd.ObjectsToFieldsRelation);
                 foreach (DataRow fieldRow in fields)
                 {
                     DataRow[] fieldSwitchRows = fieldRow.GetChildRows("FieldSwitches");
