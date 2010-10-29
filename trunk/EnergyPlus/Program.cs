@@ -11,13 +11,13 @@ namespace EnergyPlus
     {
         static void Main(string[] args)
         {
-            EPIDF epidf = new EPIDF();
-            epidf.epidd.CreateReferenceListTable();
-            List<int> test = epidf.epidd.GetChildObjectIDs(65);
-            List<string> test2 = epidf.epidd.GetChildObjectIDStrings(76);
-            epidf.epidd.writeIDDXML();
-            epidf.ReadIDFFile(@"C:\EnergyPlusV5-0-0\ExampleFiles\1ZoneEvapCooler.idf");
-            epidf.WriteIDFFile(@"C:\test\output.idf");
+            EPIDD epidd = new EPIDD();
+            epidd.CreateReferenceListTable();
+            List<int> test = epidd.GetChildObjectIDs(65);
+            List<string> test2 = epidd.GetChildObjectIDStrings(76);
+            epidd.writeIDDXML();
+            epidd.ReadIDFFile(@"C:\EnergyPlusV5-0-0\ExampleFiles\1ZoneEvapCooler.idf");
+            epidd.WriteIDFFile(@"C:\test\output.idf");
 
         }
     }
