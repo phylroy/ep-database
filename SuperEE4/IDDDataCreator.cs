@@ -10,7 +10,7 @@ namespace SuperEE4
     {
         public static DataSet CreateDataSet()
         {
-            EPIDD epidd = EPIDD.GetInstance();
+            EPIDD epidd = new EPIDD();
 
             return epidd.IDD;
         }

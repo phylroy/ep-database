@@ -12,7 +12,8 @@ namespace EnergyPlusLib
     {
         //Members
         public DataSet IDD;
-        
+        //Methods to Create Databases.
+
 
         DataTable fieldsTable;
         DataTable fieldSwitchesTable;
@@ -69,17 +70,173 @@ namespace EnergyPlusLib
 
         string[] FileAsString;
 
-        //Methods to Create Databases.
-        private static EPIDD instance = new EPIDD();
-        public static  EPIDD GetInstance() { return instance; }
+
         
-        private             EPIDD()
+
+            DataTable argumentsTable ;
+            DataColumn args_command_id_column ;
+            DataColumn args_argument_id_column ;
+            DataColumn args_field_id_column;
+            DataColumn args_argument_order_column;
+            DataColumn args_object_id_column ;
+            DataColumn args_argument_value_column;
+
+
+
+
+        
+        public void ReadIDFFile(string path)
+        { 
+            // Reads and parses the file into string list. 
+            List<string> idfListString = new List<string>();
+            using (StreamReader reader = new StreamReader(path))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    idfListString.Add(line);          // Add to list.
+
+                }
+            }
+            string tempstring = "";
+            foreach (string line in idfListString)
+            {
+                //Remove comments. 
+                string sline = line;
+                sline = Regex.Replace(line, @"(^\s*.*)(!.*)", @"$1");
+
+                //check if line is a blank or whitespace only.
+                if (sline != "" || !Regex.IsMatch(sline,@"^\s*$") )
+                {
+
+                    // is this an , line. if true then
+                    if (Regex.IsMatch(sline, @"^.*,\s*$")) {
+                        //Trim whitespace.
+                        sline = sline.Trim();
+                        //add to tempstring. 
+                        tempstring = tempstring + sline;
+                    }
+
+                    if (Regex.IsMatch(sline, @"^.*;\s*$"))
+                    {
+                        //Trim whitespace.
+                        sline = sline.Trim();
+                        //remove ;
+                        sline = Regex.Replace(sline, @"(^.*)(;\s*$)", @"$1").Trim();
+                        //add to tempstring. 
+                        tempstring = tempstring + sline;
+                        //split along ,
+                        string[] items = tempstring.Split(',');
+                        //find object name.
+                        string object_name = items[0].Trim();
+                        //find object id. 
+                        int object_id = GetObjectIDFromObjectName(object_name);
+                        //get number of fields 
+                        int NumberOfFields = GetNumberOfFieldsFromObjectID(object_id);
+                        //get number of extensible fields.
+                        int NumberOfExtensible = GetObjectExtensibleNumber(object_id);
+                        //get the min num of fields. 
+                        int MinNumOfFields = GetObjectsMinNumOfFields(object_id);
+                        //get Field_ids from object_id. 
+                        List<int> FieldIDs = GetFieldsIDsFromObjectID(object_id);
+
+                        //Add command to command table. 
+                        DataRow command_row = IDD.Tables["commands"].Rows.Add();
+                        command_row["object_id"] = object_id; 
+
+                        //add row to its datatable
+                        //TODO have non-extensible row items to the table and add the extensible item added to the extensible table with command_id. 
+
+                        int iFieldCount = 0; 
+                        if (NumberOfExtensible == 0)
+                        {
+                            iFieldCount = items.Length;
+                        }
+                        else
+                        {
+                            iFieldCount = NumberOfFields - NumberOfExtensible +1;
+                        }
+
+                        for (int i = 1; i < iFieldCount; i++)
+                        {
+                            DataRow Row2 = argumentsTable.Rows.Add();
+                            Row2[args_command_id_column] = command_row["command_id"];
+                            Row2[args_field_id_column] = FieldIDs[i-1];
+                            Row2[args_argument_order_column] = i;
+                            Row2[args_object_id_column] = object_id;
+                            Row2[args_argument_value_column] = items[i];
+                        }
+                        tempstring = "";               
+                    }
+                }
+            }
+        }
+
+        public void WriteIDFFile(string path)
         {
+            TextWriter tw = new StreamWriter(path);
+
+            foreach (DataTable table in IDD.Tables)
+            {
+                if (table.TableName != "commands")
+                {
+                    foreach(DataRow row in table.Rows) 
+                    {
+                        string tempstring1 = table.TableName;
+                        foreach (DataColumn col in table.Columns)
+                        {
+                            tempstring1 += ",\r\n      " + row[col].ToString();
+                        }
+                        tempstring1 += ";"; 
+                        tw.WriteLine(tempstring1);
+                    }
+                }
+            }
+            tw.Close();
+
+        }
+
+
+
+        
+        public  EPIDD()
+        {
+
+
+            //Set up IDF datastructure
+
+                        //Create a IDD object instance and read in the IDD file to create object and field switches.
+            //epidd = GetInstance();
+            //Create a blank dataset for the idf datatables. 
+            IDD = new DataSet("DataDictionary");
+            //Create the datatables for each IDD table for easier access. 
+            #region Pointers to tables. 
+            DataTable objects = IDD.Tables["objects"];
+            DataTable objects_switches = IDD.Tables["object_switches"];
+            DataTable objects_fields = IDD.Tables["fields"];
+            DataTable objects_fields_switches = IDD.Tables["field_switches"];
+            #endregion
+            #region Commands Table
+            DataTable commandsTable = IDD.Tables.Add("commands");
+            DataColumn command_column = commandsTable.Columns.Add("command_id", typeof(Int32));
+            command_column.AutoIncrement = true; command_column.Unique = true;
+            DataColumn object_id_column = commandsTable.Columns.Add("object_id", typeof(Int32));
+            #endregion Commands Table.
+            #region Arguments Table.
+            argumentsTable = IDD.Tables.Add("arguments");
+            args_command_id_column = argumentsTable.Columns.Add("command_id", typeof(Int32));
+            args_argument_id_column = argumentsTable.Columns.Add("argument_id", typeof(Int32));
+            args_argument_id_column.AutoIncrement = true; args_argument_id_column.Unique = true;
+            args_argument_value_column = argumentsTable.Columns.Add("argument_value", typeof(String));
+            args_argument_order_column = argumentsTable.Columns.Add("argument_order", typeof(Int32));
+            args_field_id_column = argumentsTable.Columns.Add("field_id", typeof(Int32));
+            args_object_id_column = argumentsTable.Columns.Add("object_id", typeof(Int32));
+            #endregion
 
             //Read file into a string. 
             FileAsString = File.ReadAllLines(@"C:\EnergyPlusV5-0-0\energy+.idd");
 
-            IDD = new DataSet("DataDictionary");
+
 
 
             //Create Groups Table
