@@ -17,7 +17,7 @@ namespace EnergyPlusLib
         DataTable fieldsTable;
         DataTable fieldSwitchesTable;
 
-        //**********Datatable Groups
+        #region Datatable groups definition
         const string GroupTableName = "groups";
         DataTable GroupsTable;
 
@@ -26,13 +26,11 @@ namespace EnergyPlusLib
 
         const string GroupNameColumnHeader = @"group_name";
         DataColumn groups_group_name_column;
-
-
-
-        //***********DataTable objects
+        #endregion
+        #region DataTable objects definition
         const string ObjectTableName = @"objects";
         DataTable ObjectsTable;
-
+        #endregion
         //DataTable objects columns.
         const string ObjectIDColumnHeader = @"object_id";
         DataColumn objects_object_id_column;
@@ -699,9 +697,6 @@ namespace EnergyPlusLib
                 newrow["object_list_id"] = row11["object_list_id"];
             }
         }
-
-
-
 
         public List<int> GetChildObjectIDs(int object_id){
         
