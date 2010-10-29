@@ -7,12 +7,24 @@ using System.Data;
 using System.Text.RegularExpressions;
 using System.Reflection;
 
+
+
+
 namespace EnergyPlusLib
 {
     public class EPIDF
     {
         public EPIDD epidd;
-        public DataSet idfDataSet;
+        
+
+            DataTable argumentsTable ;
+            DataColumn args_command_id_column ;
+            DataColumn args_argument_id_column ;
+            DataColumn args_field_id_column;
+            DataColumn args_argument_order_column;
+            DataColumn args_object_id_column ;
+            DataColumn args_argument_value_column;
+
 
         public DataTable ConvertToDataTable<T>(IEnumerable<T> varlist)
         {
@@ -57,106 +69,38 @@ namespace EnergyPlusLib
 
         public EPIDF()
         {
-
             //Create a IDD object instance and read in the IDD file to create object and field switches.
             epidd = EPIDD.GetInstance();
             //Create a blank dataset for the idf datatables. 
-            idfDataSet = new DataSet();
+            //epidd.IDD = new DataSet();
             //Create the datatables for each IDD table for easier access. 
+            #region Pointers to tables. 
             DataTable objects = epidd.IDD.Tables["objects"];
             DataTable objects_switches = epidd.IDD.Tables["object_switches"];
             DataTable objects_fields = epidd.IDD.Tables["fields"];
             DataTable objects_fields_switches = epidd.IDD.Tables["field_switches"];
-
-            //Create DataStructure to hold IDF file. 
-            DataTable commandsTable = idfDataSet.Tables.Add("commands");
+            #endregion
+            #region Commands Table
+            DataTable commandsTable = epidd.IDD.Tables.Add("commands");
             DataColumn command_column = commandsTable.Columns.Add("command_id", typeof(Int32));
             command_column.AutoIncrement = true; command_column.Unique = true;
             DataColumn object_id_column = commandsTable.Columns.Add("object_id", typeof(Int32));
-
-
-
-            foreach (DataRow objectRow in objects.Rows)
-            {
-                //create new table for all commands of object type. 
-                DataTable newTable = idfDataSet.Tables.Add(objectRow["object_name"].ToString());
-                //Add a column to keep the unique command identifier. 
-                DataColumn command_column1 = newTable.Columns.Add("command_id", typeof(Int32));
-                command_column1.Unique = true;
-
-                //Create Command <-> Object Relationship.
-                idfDataSet.Relations.Add(new DataRelation("CommandIDto" + objectRow["object_name"].ToString(),
-                    idfDataSet.Tables["commands"].Columns["command_id"],
-                    newTable.Columns["command_id"])
-                    );
-
-                DataRow[] fields = objectRow.GetChildRows(epidd.ObjectsToFieldsRelation);
-                foreach (DataRow fieldRow in fields)
-                {
-                    DataRow[] fieldSwitchRows = fieldRow.GetChildRows("FieldSwitches");
-                    DataColumn column = new DataColumn(fieldRow["field_name"].ToString());
-                    //Console.WriteLine(objectRow["object_name"].ToString() + fieldRow["field_name"].ToString());
-                    string datatype = null;
-                    int field_id = (int)fieldRow["field_id"];
-                    
-                    foreach (DataRow row in fieldSwitchRows)
-                    {
-
-                        if (row[2].ToString() == @"\begin-extensible")
-                        {
-                            //Create new table to contain extensible data. 
-                            newTable = idfDataSet.Tables.Add(objectRow["object_name"].ToString()+"_Extensible");
-                            //Add command_id Column
-                            newTable.Columns.Add("command_id", typeof(Int32));
-                            //Create Command <-> Command_extensible Relationship.
-                            idfDataSet.Relations.Add(new DataRelation("CommandIDto" + objectRow["object_name"].ToString()+"_extensible",
-                                idfDataSet.Tables["commands"].Columns["command_id"],
-                                newTable.Columns["command_id"])
-                                );
-                        }
-                    }
-
-
-
-
-                    foreach (DataRow row in fieldSwitchRows)
-                    {
-                        
-                        if (row[2].ToString() == @"\type")
-                        {
-                            datatype = row[3].ToString(); 
-                        }
-                    }
-                            
-                    if (datatype == null) datatype = "alpha";
-
-                            switch (datatype)
-                            {
-                                //Dump everything into a string since some selections can be string and number.
-                                case "choice":
-                                case "object-list":
-                                case "alpha":
-                                case "integer":
-                                case "real":
-                                    column.DataType = System.Type.GetType("System.String");
-                                    break;
-                                default:
-                                    break;
-                            }
-                            newTable.Columns.Add(column);
-                        }
-                     
-                    
-                }
-
+            #endregion Commands Table.
+            #region Arguments Table.
+            argumentsTable = epidd.IDD.Tables.Add("arguments");
+            args_command_id_column = argumentsTable.Columns.Add("command_id", typeof(Int32));
+            args_argument_id_column = argumentsTable.Columns.Add("argument_id", typeof(Int32));
+            args_argument_id_column.AutoIncrement = true; args_argument_id_column.Unique = true;
+            args_argument_value_column = argumentsTable.Columns.Add("argument_value", typeof(String));
+            args_argument_order_column = argumentsTable.Columns.Add("argument_order", typeof(Int32));
+            args_field_id_column = argumentsTable.Columns.Add("field_id", typeof(Int32));
+            args_object_id_column = argumentsTable.Columns.Add("object_id", typeof(Int32));
+            #endregion
 
             }
         
-
-
         public void ReadIDFFile(string path)
-        {
-            
+        { 
             // Reads and parses the file into string list. 
             List<string> idfListString = new List<string>();
             using (StreamReader reader = new StreamReader(path))
@@ -168,7 +112,6 @@ namespace EnergyPlusLib
 
                 }
             }
-            
             string tempstring = "";
             foreach (string line in idfListString)
             {
@@ -202,25 +145,26 @@ namespace EnergyPlusLib
                         string object_name = items[0].Trim();
                         //find object id. 
                         int object_id = epidd.GetObjectIDFromObjectName(object_name);
+                        //get number of fields 
                         int NumberOfFields = epidd.GetNumberOfFieldsFromObjectID(object_id);
+                        //get number of extensible fields.
                         int NumberOfExtensible = epidd.GetObjectExtensibleNumber(object_id);
+                        //get the min num of fields. 
                         int MinNumOfFields = epidd.GetObjectsMinNumOfFields(object_id);
-                        //Add command to command table. 
-                        DataRow command_row = idfDataSet.Tables["commands"].Rows.Add();
-                        command_row["object_id"] = object_id; 
+                        //get Field_ids from object_id. 
+                        List<int> FieldIDs = epidd.GetFieldsIDsFromObjectID(object_id);
 
+                        //Add command to command table. 
+                        DataRow command_row = epidd.IDD.Tables["commands"].Rows.Add();
+                        command_row["object_id"] = object_id; 
 
                         //add row to its datatable
                         //TODO have non-extensible row items to the table and add the extensible item added to the extensible table with command_id. 
-                        DataTable table = idfDataSet.Tables[items[0].Trim()];
-                        DataRow row = table.Rows.Add();
-                        row["command_id"] = command_row["command_id"];
+
                         int iFieldCount = 0; 
                         if (NumberOfExtensible == 0)
                         {
-
                             iFieldCount = items.Length;
-
                         }
                         else
                         {
@@ -229,8 +173,12 @@ namespace EnergyPlusLib
 
                         for (int i = 1; i < iFieldCount; i++)
                         {
-
-                            row[i] = items[i];
+                            DataRow Row2 = argumentsTable.Rows.Add();
+                            Row2[args_command_id_column] = command_row["command_id"];
+                            Row2[args_field_id_column] = FieldIDs[i-1];
+                            Row2[args_argument_order_column] = i;
+                            Row2[args_object_id_column] = object_id;
+                            Row2[args_argument_value_column] = items[i];
                         }
                         tempstring = "";               
                     }
@@ -242,7 +190,7 @@ namespace EnergyPlusLib
         {
             TextWriter tw = new StreamWriter(path);
 
-            foreach (DataTable table in idfDataSet.Tables)
+            foreach (DataTable table in epidd.IDD.Tables)
             {
                 if (table.TableName != "commands")
                 {
