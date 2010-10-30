@@ -15,7 +15,7 @@
         <!-- Displays a row in the 'Detail' table 
          (i.e. the child table). -->
         <DataTemplate x:Key="FieldLevel">
-            <TextBlock Text="{Binding field_name}" />
+            <TextBlock Text="{Binding command_id}" />
         </DataTemplate>
 
         <!-- Displays a row in the 'Master' table 
@@ -27,7 +27,7 @@
 
         <HierarchicalDataTemplate 
       x:Key="CommandLevel" 
-      ItemsSource="{Binding ObjectsToFieldsRelation}" 
+      ItemsSource="{Binding ObjectsToCommandsRelation}" 
       ItemTemplate="{StaticResource FieldLevel}"
       >
             <TextBlock Text="{Binding object_name}" />
