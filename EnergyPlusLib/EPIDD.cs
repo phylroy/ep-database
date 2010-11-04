@@ -6,8 +6,77 @@ using System.IO;
 using System.Data;
 using System.Text.RegularExpressions;
 using System.Reflection;
+using FluentNHibernate;
 namespace EnergyPlusLib
 {
+
+
+
+    public class ObjectSwitch
+    {
+        public virtual int Id { get; private set; }
+        public virtual string Name { get; set; }
+        public virtual string Value { get; set; }
+        //can either have a object or field  as a parent.
+        public virtual Object Object {get; set;}
+    }
+
+
+    public class FieldSwitch
+    {
+        public virtual int Id { get; private set; }
+        public virtual string Name { get; set; }
+        public virtual string Value { get; set; }
+        //can either have a object or field  as a parent.
+        public virtual Field Field { get; set; }
+    }
+
+
+
+
+
+    public class Field
+    {
+        public virtual int Id { get; private set; }
+        public virtual string Name { get; set; }
+        public virtual int Order { get; set; }
+        public virtual IList<FieldSwitch> Switches { get; private set; }
+        public virtual int ObjectId {get; set;}
+
+        public Field()
+        {
+            Switches = new List<FieldSwitch>();
+        }
+    }
+
+    public class Object
+    {
+        public virtual int Id { get; private set; }
+        public virtual string FirstName { get; set; }
+        public virtual IList<ObjectSwitch> Switches { get; set; }
+        public virtual IList<Field> Fields { get; set; }
+        public Object()
+        {
+            Switches = new List<ObjectSwitch>();
+            Fields = new List<Field>();
+        }
+
+        public virtual void AddSwitch(ObjectSwitch switch_pass)
+        {
+            switch_pass.Object = this;
+            Switches.Add(switch_pass);
+        }
+
+        public virtual void AddField(Field Field_pass)
+        {
+            Field_pass.ObjectId = this.Id;
+            Fields.Add(Field_pass);
+        }
+
+    }
+
+
+
     public class EPIDD
     {
         //Members
