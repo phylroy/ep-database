@@ -1,12 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using FluentNHibernate;
+using FluentNHibernate.Mapping;
+using FluentNHibernate.Cfg;
+using FluentNHibernate.Cfg.Db;
+using NHibernate;
+using NHibernate.Cfg;
+using NHibernate.Tool.hbm2ddl;
+using NHibernate.ByteCode.Castle;
 using System.Linq;
 using System.Text;
 using System.IO;
 using System.Data;
 using System.Text.RegularExpressions;
+using Iesi.Collections;
 using System.Reflection;
+using System.Data.SQLite;
 
 namespace EnergyPlusLib
 {
@@ -15,72 +24,168 @@ namespace EnergyPlusLib
     public class ObjectSwitch
     {
         //table data.
-        public virtual int Id { get; private set; }
         public virtual string Name { get; set; }
         public virtual string Value { get; set; }
-
+        public virtual Object Object { get; set; }
         public ObjectSwitch(string Name, string Value)
         {
             this.Name = Name;
             this.Value = Value;
         }
+        public ObjectSwitch()
+        {
+        }
     }
+
     public class FieldSwitch
     {
         //table data.
-        public virtual int Id { get; private set; }
         public virtual string Name { get; set; }
         public virtual string Value { get; set; }
-
+        public virtual Field Field { get; set; }
         public FieldSwitch(string Name, string Value)
         {
             this.Name = Name;
             this.Value = Value;
         }
-
+        public FieldSwitch() { }
     }
     public class Field
     {
         //table data.
-        public virtual int Id { get; private set; }
         public virtual String DataName { get; private set; }
         public virtual int Order { get; set; }
+        public virtual Object Object { get; set; }
         public virtual IList<FieldSwitch> Switches { get; private set; }
+        EPlusDataModel IDD = null;
+        public IList<Field> ObjectListTypeChoices = null;
 
-        //Functions.
-        public string Name { get; set; }
-        public string Notes { get; set; }
-        public float RangeMaxValue { get; set; }
-        public float RangeMinValue { get; set; }
-        public float RangeGreaterThan { get; set; }
-        public float RangeLessThan { get; set; }
-        public List<string> Choices { get; set; }
-        public string Type { get; set; }
-        public string ObjectList { get; set; }
-        public string Reference { get; set; }
-
-
-        public Field(string DataName, int Order)
+        public virtual bool UpdateRelationships()
         {
-            this.DataName = DataName;
-            this.Order = Order;
-            Switches = new List<FieldSwitch>();
+            //Add all the Field types that could be used to populate this field if needed. 
+            string ObjectList = this.ObjectList();
+            if (ObjectList != null)
+            {
+
+                ObjectListTypeChoices = IDD.GetObjectListReferences(ObjectList);
+            }
+
+
+            return true;
         }
 
-        public void AddSwitch(FieldSwitch Switch)
-    {
-        this.Switches.Add(Switch);
-    }
+
+        #region Energyplus Field switch types.
+
+        public string FindSwitchValue(string switch_name)
+        {
+            var result = from Switch in Switches
+                         where Switch.Name == switch_name
+                         select Switch.Value;
+            return result.FirstOrDefault();
+        }
+
+        public IList<string> FindSwitchValues(string switch_name)
+        {
+            var result = from Switch in Switches
+                         where Switch.Name == switch_name
+                         select Switch.Value;
+            return result.ToList<String>();
+        }
+
+        public bool IsSwitchPresent(string switch_name)
+        {
+            bool value = false;
+            var result = from Switch in Switches
+                         where Switch.Name == switch_name
+                         select Switch.Value;
+            if (result.Count() > 0) value = true;
+            return value;
+        }
+
+        public string Name()
+        { return FindSwitchValue(@"\field"); }
+
+        public IList<string> Notes()
+        { return FindSwitchValues(@"\note"); }
+
+        public bool IsRequiredField()
+        { return IsSwitchPresent(@"\required-field"); }
+
+        public string Units()
+        { return FindSwitchValue(@"\units"); }
+
+        public string IPUnits()
+        { return FindSwitchValue(@"\ip-units"); }
+
+        public string UnitsBasedOnField()
+        { return FindSwitchValue(@"\unitsBasedOnField"); }
+
+        public string RangeMinimum()
+        { return FindSwitchValue(@"\minimum"); }
+
+        public string RangeMaximum()
+        { return FindSwitchValue(@"\maximum"); }
+
+        public string RangeGreaterThan()
+        { return FindSwitchValue(@"\minimum>"); }
+
+        public string RangeLessThan()
+        { return FindSwitchValue(@"\maximum<"); }
+
+        public string Depreciated()
+        { return FindSwitchValue(@"\deprecated"); }
+
+        public bool IsAutoSizable()
+        { return IsSwitchPresent(@"\autosizable"); }
+
+        public bool IsAutoCalculable()
+        { return IsSwitchPresent(@"\autocalculatable"); }
+
+        public string Type()
+        { return FindSwitchValue(@"\type"); }
+
+        public IList<string> Keys()
+        { return FindSwitchValues(@"\key"); }
+
+        public string ObjectList()
+        { return FindSwitchValue(@"\object-list"); }
+
+
+        public IList<string> References()
+        { return FindSwitchValues(@"\reference"); }
+        #endregion
+
+        public Field(string DataName, int Order, Object Object)
+            : this()
+        {
+            IDD = EPlusDataModel.GetInstance();
+            this.DataName = DataName;
+            this.Order = Order;
+            this.Object = Object;
+
+        }
+
+        public Field()
+        {
+            Switches = new List<FieldSwitch>();
+            ObjectListTypeChoices = new List<Field>();
+        }
+
+
+        public virtual void AddSwitch(FieldSwitch Switch)
+        {
+            this.Switches.Add(Switch);
+        }
 
     }
     public class Object
     {
         //table data. 
-        public virtual int Id { get; private set; }
-        public virtual string Name { get; set; } 
+        public virtual string Name { get; set; }
         public virtual IList<ObjectSwitch> Switches { get; set; }
-        public virtual IList<Field> Fields { get; set; }
-        public virtual string Group{ get; set; } 
+        public virtual List<Field> Fields { get; set; }
+        public virtual string Group { get; set; }
         public Object(string Name, string Group)
         {
             this.Name = Name;
@@ -88,6 +193,15 @@ namespace EnergyPlusLib
             this.Switches = new List<ObjectSwitch>();
             this.Fields = new List<Field>();
         }
+
+
+        public Object()
+        {
+            EPlusDataModel IDD = EPlusDataModel.GetInstance();
+            this.Switches = new List<ObjectSwitch>();
+            this.Fields = new List<Field>();
+        }
+
 
         public virtual void AddSwitch(ObjectSwitch switch_pass)
         {
@@ -99,12 +213,55 @@ namespace EnergyPlusLib
             Fields.Add(Field_pass);
         }
 
-        //Methods
-        public int ExtensibleNumber { get; set; }
-        public bool IsRequiredObject { get; set; }
-        public bool IsUnique { get; set; }
-        public IList<Object> References { get; set; }
-        public IList<Object> Dependancies { get; set; }
+        //General Methods.
+        public string FindSwitchValue(string switch_name)
+        {
+            var result = from Switch in Switches
+                         where Switch.Name == switch_name
+                         select Switch.Value;
+            return result.FirstOrDefault();
+        }
+
+        public IList<string> FindSwitchValues(string switch_name)
+        {
+            var result = from Switch in Switches
+                         where Switch.Name == switch_name
+                         select Switch.Value;
+            return result.ToList<String>();
+        }
+
+        public bool IsSwitchPresent(string switch_name)
+        {
+            bool value = false;
+            var result = from Switch in Switches
+                         where Switch.Name == switch_name
+                         select Switch.Value;
+            if (result.Count() > 0) value = true;
+            return value;
+        }
+
+        public IList<string> Memos()
+        { return FindSwitchValues(@"\memo"); }
+
+
+
+        public bool IsUniqueObject()
+        { return IsSwitchPresent(@"\unique-object"); }
+
+        public bool IsRequiredObject()
+        { return IsSwitchPresent(@"\required-object"); }
+
+        public string MinimumFields()
+        { return FindSwitchValue(@"\min-fields"); }
+
+        public bool IsObsolete()
+        { return IsSwitchPresent(@"\required-object"); }
+
+        public string ExtensibleNumber()
+        { return FindSwitchValue(@"\extensible"); }
+
+        public string Format()
+        { return FindSwitchValue(@"\format"); }
 
     }
 
@@ -112,27 +269,36 @@ namespace EnergyPlusLib
     public class Argument
     {
         public Field Field;
-        public string Value { get; set; }
+        public string Value;
+
+        public Argument(Field field, string Value)
+        {
+
+            this.Field = field;
+            this.Value = Value;
+
+        }
 
     }
     public class Command
     {
         public Object Object;
-        public virtual int Id { get; private set; }
         public virtual string UserComments { get; set; }
         //IDF Arguments. 
-        public virtual IList<Argument> Arguments { get; set; }
+        public IList<Argument> Arguments { get; set; }
         //Extra Arguments that we may need for compliance or something else. 
-        public virtual IList<Argument> EnhancedArguments { get; set; }
-        
+        public IList<Argument> EnhancedArguments { get; set; }
+
         //Methods
-        public bool IsExtensible(){return true;}
-        public int ExtensibleNumber() { return 1; }
-        public int MinNumberOfFields() { return 1; }
         //public IList<Command> FindChildren();
         //public IList<Command> FindParents();
 
-        public Command(Object Object) { }
+        public Command(Object Object) {
+
+            this.Arguments = new List<Argument>();
+            this.Object = Object;
+        
+        }
 
         public void AddArgument(Argument Argument)
         {
@@ -145,16 +311,53 @@ namespace EnergyPlusLib
         }
 
     }
-
-
-    public class EPlus
+    public class EPlusDataModel
     {
+        private static EPlusDataModel instance = new EPlusDataModel();
+        public IList<Object> IDDObjects;
+        public IList<Command> IDFCommands;
 
-        public void ReadIDDFile()
+        public static EPlusDataModel GetInstance()
         {
-            List<Object> Objects = new List<Object>();
+            return instance;
+        }
+        private EPlusDataModel() {}
 
-            string[] FileAsString = File.ReadAllLines(@"C:\EnergyPlusV5-0-0\energy+.idd");
+
+        public List<Field> GetObjectListReferences(String Reference)
+        {
+
+            var q = (from object1 in IDDObjects.AsEnumerable()
+                     from field1 in object1.Fields
+                     from fieldswitch in field1.Switches
+                     where fieldswitch.Name == @"\references"
+                     select field1).Distinct();
+            return q.ToList<Field>();
+        }
+        public List<Field> GetObjectList(String Reference)
+        {
+
+            var q = (from object1 in IDDObjects.AsEnumerable()
+                     from field1 in object1.Fields
+                     from fieldswitch in field1.Switches
+                     where fieldswitch.Name == @"\object-list"
+                     select field1).Distinct();
+            return q.ToList<Field>();
+        }
+        public Object GetObject(string name)
+        {
+            var q = from object1 in IDDObjects
+                    where object1.Name == name
+                    select object1;
+            return q.FirstOrDefault();
+        }
+
+        public void ReadIDDFile(string path)
+        {
+
+            IDDObjects = new List<Object>();
+
+            string[] FileAsString = File.ReadAllLines(path);
             #region regex strings.
             // blank regex. 
             Regex blank = new Regex(@"^$");
@@ -200,8 +403,8 @@ namespace EnergyPlusLib
                         current_object_name = object_match.Groups[1].ToString().Trim();
                         //Create new object.
                         current_object = new Object(current_object_name, current_group);
-                        Objects.Add(current_object);
-                        current_field_id = -1;
+                        IDDObjects.Add(current_object);
+                        current_field = null;
                         field_counter = 0;
                     }
                     Match field_match = field_regex.Match(newline);
@@ -211,14 +414,14 @@ namespace EnergyPlusLib
                         //Found new field.
                         string field_data_name = field_match.Groups[1].ToString().Trim();
                         int field_position = field_counter++;
-                        current_field = new Field(field_data_name, field_position);
+                        current_field = new Field(field_data_name, field_position, current_object);
                         current_object.AddField(current_field);
 
 
                         //Found First Switch. 
                         string field_switch = @"\field";
                         string field_switch_value = field_match.Groups[4].ToString().Trim();
-                        current_field.AddSwitch(new FieldSwitch(field_switch,field_switch_value));
+                        current_field.AddSwitch(new FieldSwitch(field_switch, field_switch_value));
 
                         if (bBeginExtensible == true) iExtensible--;
                     }
@@ -227,11 +430,11 @@ namespace EnergyPlusLib
                     {
                         //found switch. 
                         //check if object switch. 
-                        if (current_field_id == -1 && !(bBeginExtensible == true && iExtensible <= 0))
+                        if (current_field == null && !(bBeginExtensible == true && iExtensible <= 0))
                         {
                             //Since this is an object switch, save to object switch table. 
 
-                            string object_switch_name; 
+                            string object_switch_name;
                             string object_switch_value;
                             if (switch_match.Groups[1].ToString().Trim().Contains(@"\extensible"))
                             {
@@ -247,9 +450,9 @@ namespace EnergyPlusLib
                                 object_switch_name = switch_match.Groups[1].ToString().Trim();
                                 object_switch_value = switch_match.Groups[2].ToString().Trim();
                             }
-                            current_object.AddSwitch(new ObjectSwitch(object_switch_name,object_switch_value));
+                            current_object.AddSwitch(new ObjectSwitch(object_switch_name, object_switch_value));
                         }
-                        if (current_field_id != -1 && !(bBeginExtensible == true && iExtensible <= 0))
+                        if (current_field != null && !(bBeginExtensible == true && iExtensible <= 0))
                         {
                             //new field switch.
                             string field_switch = switch_match.Groups[1].ToString().Trim();
@@ -264,7 +467,106 @@ namespace EnergyPlusLib
                     }
                 }
             }
+
+            var q = from object1 in IDDObjects
+                    from field in object1.Fields
+                    select field.UpdateRelationships()
+                    ;
+
+
+
         }
+        public void ReadIDFFile(string path)
+        {
+            IDFCommands = new List<Command>();
+
+            // Reads and parses the file into string list. 
+            List<string> idfListString = new List<string>();
+            using (StreamReader reader = new StreamReader(path))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    idfListString.Add(line);          // Add to list.
+
+                }
+            }
+            string tempstring = "";
+            foreach (string line in idfListString)
+            {
+                //Remove comments. 
+                string sline = line;
+                sline = Regex.Replace(line, @"(^\s*.*)(!.*)", @"$1");
+
+                //check if line is a blank or whitespace only.
+                if (sline != "" || !Regex.IsMatch(sline, @"^\s*$"))
+                {
+
+                    // is this an , line. if true then
+                    if (Regex.IsMatch(sline, @"^.*,\s*$"))
+                    {
+                        //Trim whitespace.
+                        sline = sline.Trim();
+                        //add to tempstring. 
+                        tempstring = tempstring + sline;
+                    }
+
+                    if (Regex.IsMatch(sline, @"^.*;\s*$"))
+                    {
+                        //Trim whitespace.
+                        sline = sline.Trim();
+                        //remove ;
+                        sline = Regex.Replace(sline, @"(^.*)(;\s*$)", @"$1").Trim();
+                        //add to tempstring. 
+                        tempstring = tempstring + sline;
+                        //split along ,
+                        string[] items = tempstring.Split(',');
+                        //find object name.
+                        string object_name = items[0].Trim();
+                        //find object id. 
+                        Object new_object = GetObject(object_name);
+                        //get number of fields 
+                        int NumberOfFields = new_object.Fields.Count();
+                        //get number of extensible fields.
+                        int NumberOfExtensible = Convert.ToInt16(new_object.ExtensibleNumber());
+                        //get the min num of fields. 
+                        int MinNumOfFields = Convert.ToInt16(new_object.MinimumFields());
+                        //get Field_ids from object_id. 
+                        List<Field> Fields = new_object.Fields;
+
+                        //Add command to Array.
+                        Command new_command = new Command(new_object);
+                        IDFCommands.Add(new_command);
+
+
+                        //add row to its datatable
+                        //TODO have non-extensible row items to the table and add the extensible item added to the extensible table with command_id. 
+
+                        int iFieldCount = 0;
+                        if (NumberOfExtensible == 0)
+                        {
+                            iFieldCount = items.Length;
+                        }
+                        else
+                        {
+                            iFieldCount = NumberOfFields - NumberOfExtensible + 1;
+                        }
+
+                        for (int i = 1; i < iFieldCount; i++)
+                        {
+                            Argument argument = new Argument(Fields[i - 1], items[i]);
+                            new_command.Arguments.Add(argument);
+
+
+                        }
+                        tempstring = "";
+                    }
+                }
+            }
+
+
+        }
+
     }
 }
 

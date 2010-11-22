@@ -36,6 +36,29 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="antlr.runtime">
+      <HintPath>..\packages\Antlr.3.1.1\lib\antlr.runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="Antlr3.Runtime, Version=3.1.0.39271, Culture=neutral, PublicKeyToken=3a9cab8f8d22bfb7, processorArchitecture=MSIL" />
+    <Reference Include="Antlr3.Utility">
+      <HintPath>..\packages\Antlr.3.1.1\lib\Antlr3.Utility.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.Core">
+      <HintPath>..\packages\Castle.Core.1.1.0\lib\Castle.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Castle.DynamicProxy2">
+      <HintPath>..\packages\Castle.DynamicProxy.2.1.0\lib\Castle.DynamicProxy2.dll</HintPath>
+    </Reference>
+    <Reference Include="FluentNHibernate, Version=1.1.0.685, Culture=neutral, PublicKeyToken=8aa435e3cb308880, processorArchitecture=MSIL" />
+    <Reference Include="Iesi.Collections, Version=1.0.1.0, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL" />
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=1b44e1d426115821, processorArchitecture=MSIL" />
+    <Reference Include="NHibernate, Version=2.1.2.4000, Culture=neutral, PublicKeyToken=aa95f207798dfdb4, processorArchitecture=MSIL" />
+    <Reference Include="NHibernate.ByteCode.Castle">
+      <HintPath>..\packages\NHibernate.Core.2.1.2.4000\lib\NHibernate.ByteCode.Castle.dll</HintPath>
+    </Reference>
+    <Reference Include="StringTemplate">
+      <HintPath>..\packages\Antlr.3.1.1\lib\StringTemplate.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -59,6 +82,7 @@
   <ItemGroup>
     <None Include="ClassDiagram1.cd" />
     <None Include="ClassDiagram2.cd" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\EnergyPlusLib\EnergyPlusLib.csproj">

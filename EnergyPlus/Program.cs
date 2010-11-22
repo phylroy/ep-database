@@ -11,14 +11,9 @@ namespace EnergyPlus
     {
         static void Main(string[] args)
         {
-            EPIDD epidd = new EPIDD();
-            epidd.CreateReferenceListTable();
-            List<int> test = epidd.GetChildObjectIDs(65);
-            List<string> test2 = epidd.GetChildObjectIDStrings(76);
-            epidd.writeIDDXML();
-            epidd.ReadIDFFile(@"C:\EnergyPlusV5-0-0\ExampleFiles\1ZoneEvapCooler.idf");
-            epidd.WriteIDFFile(@"C:\test\output.idf");
-
+            EPlusDataModel idd = EPlusDataModel.GetInstance();
+            idd.ReadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
+            idd.ReadIDFFile(@"C:\EnergyPlusV6-0-0\ExampleFiles\1ZoneEvapCooler.idf");
         }
     }
 }
