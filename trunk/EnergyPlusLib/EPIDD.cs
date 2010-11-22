@@ -60,16 +60,16 @@ namespace EnergyPlusLib
         //DataTable objects columns.
 
         const string ObjectSwitchIDColumnHeader = @"object_switch_id";
-        DataColumn object_switches_switch_id_column;
+        //DataColumn object_switches_switch_id_column;
 
         //same header as in objects table for object_id.
-        DataColumn object_switches_object_id_column;
+        //DataColumn object_switches_object_id_column;
 
         const string ObjectSwitchNameColumnHeader = @"object_switch";
-        DataColumn object_switches_switch_name_column;
+        //DataColumn object_switches_switch_name_column;
 
         const string ObjectSwitchValueColumnHeader = @"object_switch_value";
-        DataColumn object_switches_switch_value_column;
+        //DataColumn object_switches_switch_value_column;
         #endregion
         #region DataTable arguments_table definitions
         DataTable argumentsTable;
