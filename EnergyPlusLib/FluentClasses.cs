@@ -352,7 +352,7 @@ namespace EnergyPlusLib
             return q.FirstOrDefault();
         }
 
-        public void ReadIDDFile(string path)
+        public void LoadIDDFile(string path)
         {
 
             IDDObjects = new List<Object>();
@@ -376,7 +376,6 @@ namespace EnergyPlusLib
             String current_object_name = null;
             Field current_field = null;
             int iExtensible = 0;
-            int current_field_id = -1;
             int field_counter = 0;
             bool bBeginExtensible = false;
             foreach (string line in FileAsString)
@@ -476,7 +475,7 @@ namespace EnergyPlusLib
 
 
         }
-        public void ReadIDFFile(string path)
+        public void LoadIDFFile(string path)
         {
             IDFCommands = new List<Command>();
 
@@ -492,6 +491,9 @@ namespace EnergyPlusLib
                 }
             }
             string tempstring = "";
+
+
+            //Iterates through each line in in the array. 
             foreach (string line in idfListString)
             {
                 //Remove comments. 
@@ -559,6 +561,33 @@ namespace EnergyPlusLib
 
 
                         }
+                        //now add extensible. 
+                        if (NumberOfExtensible != 0)
+                        {
+                            //divide number of repeated fields by the amount of items remaining. 
+                            int itemsRemaining = items.Length - iFieldCount;
+                            int NumberOfGroups = itemsRemaining / NumberOfExtensible;
+
+                            for (int i = 0; i < NumberOfGroups; i++)
+                            {
+                                for (int j = 1; j <= NumberOfExtensible; j++)
+                                {
+
+                                    int fieldIndex = NumberOfFields - NumberOfExtensible + j - 1;
+                                    int itemIndex = NumberOfFields - NumberOfExtensible  + (i * NumberOfExtensible) + j;
+
+
+                                    Argument argument = new Argument(Fields[fieldIndex], items[itemIndex]);
+                                    new_command.Arguments.Add(argument);
+
+                                }
+                            }
+
+
+
+
+
+                        }
                         tempstring = "";
                     }
                 }
@@ -566,6 +595,41 @@ namespace EnergyPlusLib
 
 
         }
+        public void SaveIDFFile(string path)
+        {
+            TextWriter tw = new StreamWriter(path);
+
+            foreach (Command command in IDFCommands)
+            {
+                string tempstring1 = command.Object.Name + ",\r\n";
+
+                    foreach (Argument argument in command.Arguments)
+                    {
+
+                        if (command.Arguments.Last() == argument)
+                        {
+                            tempstring1 += "      " + argument.Value + ";\t\t\t\t !- " + argument.Field.Name() + " {" + argument.Field.Units() +"}\r\n" ;
+                        }
+                        else
+                        {
+                            tempstring1 += "      " + argument.Value + ",\t\t\t\t !- " + argument.Field.Name() + " {" + argument.Field.Units() + "}\r\n";
+                        }
+
+                    }
+                       // tempstring1 += ";";
+                        tw.WriteLine(tempstring1);
+            }
+                
+            
+            tw.Close();
+
+        }
+
+        //Commands
+        public void CopyCommand(Command command){}
+        public void AddNewCommand(Object Object){}
+        public void DeleteCommand(Command command){}
+
 
     }
 }
