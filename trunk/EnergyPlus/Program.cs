@@ -12,8 +12,9 @@ namespace EnergyPlus
         static void Main(string[] args)
         {
             EPlusDataModel idd = EPlusDataModel.GetInstance();
-            idd.ReadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
-            idd.ReadIDFFile(@"C:\EnergyPlusV6-0-0\ExampleFiles\1ZoneEvapCooler.idf");
+            idd.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
+            idd.LoadIDFFile(@"C:\EnergyPlusV6-0-0\ExampleFiles\1ZoneEvapCooler.idf");
+            idd.SaveIDFFile(@"C:\XXX\test.idf");
         }
     }
 }
