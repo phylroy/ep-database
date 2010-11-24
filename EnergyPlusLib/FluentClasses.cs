@@ -36,7 +36,6 @@ namespace EnergyPlusLib
         {
         }
     }
-
     public class FieldSwitch
     {
         //table data.
@@ -311,6 +310,8 @@ namespace EnergyPlusLib
         }
 
     }
+
+    //EPlus Methods. 
     public class EPlusDataModel
     {
         private static EPlusDataModel instance = new EPlusDataModel();
@@ -347,7 +348,7 @@ namespace EnergyPlusLib
         public Object GetObject(string name)
         {
             var q = from object1 in IDDObjects
-                    where object1.Name == name
+                    where object1.Name.ToLower() == name.ToLower()
                     select object1;
             return q.FirstOrDefault();
         }
@@ -357,7 +358,7 @@ namespace EnergyPlusLib
 
             IDDObjects = new List<Object>();
 
-            string[] FileAsString = File.ReadAllLines(path);
+            List<String> FileAsString = File.ReadAllLines(path).ToList<string>();
             #region regex strings.
             // blank regex. 
             Regex blank = new Regex(@"^$");
@@ -370,6 +371,7 @@ namespace EnergyPlusLib
             Regex switch_regex = new Regex(@"^\s*(\\\S*)(\s*(.*)?)", RegexOptions.IgnoreCase);
             // group switch. 
             Regex group_regex = new Regex(@"^\s*(\\group)\s*(.*)$", RegexOptions.IgnoreCase);
+ 
             #endregion
             Object current_object = null;
             String current_group = null;
@@ -420,6 +422,11 @@ namespace EnergyPlusLib
                         //Found First Switch. 
                         string field_switch = @"\field";
                         string field_switch_value = field_match.Groups[4].ToString().Trim();
+
+                        //Get rid of the "1" if it is an extensible field as to not confuse people. 
+
+                        field_switch_value = Regex.Replace(field_switch_value, @" (1)", @" ");
+
                         current_field.AddSwitch(new FieldSwitch(field_switch, field_switch_value));
 
                         if (bBeginExtensible == true) iExtensible--;
@@ -429,7 +436,7 @@ namespace EnergyPlusLib
                     {
                         //found switch. 
                         //check if object switch. 
-                        if (current_field == null && !(bBeginExtensible == true && iExtensible <= 0))
+                        if (current_field == null && !(bBeginExtensible == true && iExtensible == 0))
                         {
                             //Since this is an object switch, save to object switch table. 
 
@@ -451,11 +458,14 @@ namespace EnergyPlusLib
                             }
                             current_object.AddSwitch(new ObjectSwitch(object_switch_name, object_switch_value));
                         }
-                        if (current_field != null && !(bBeginExtensible == true && iExtensible <= 0))
+                        if (current_field != null && !(bBeginExtensible == true && iExtensible < 0))
                         {
                             //new field switch.
                             string field_switch = switch_match.Groups[1].ToString().Trim();
                             string field_switch_value = switch_match.Groups[2].ToString().Trim();
+                            //Get rid of the "1" if it is an extensible field as to not confuse people. 
+                            field_switch_value = Regex.Replace(field_switch_value, @" (1)", @" ");
+
                             current_field.AddSwitch(new FieldSwitch(field_switch, field_switch_value));
                             if (field_switch == @"\begin-extensible")
                             {
@@ -479,20 +489,10 @@ namespace EnergyPlusLib
         {
             IDFCommands = new List<Command>();
 
-            // Reads and parses the file into string list. 
-            List<string> idfListString = new List<string>();
-            using (StreamReader reader = new StreamReader(path))
-            {
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    idfListString.Add(line);          // Add to list.
+            //Read file into string List. 
+            List<String> idfListString = File.ReadAllLines(path).ToList<string>();
 
-                }
-            }
             string tempstring = "";
-
-
             //Iterates through each line in in the array. 
             foreach (string line in idfListString)
             {
@@ -576,17 +576,12 @@ namespace EnergyPlusLib
                                     int fieldIndex = NumberOfFields - NumberOfExtensible + j - 1;
                                     int itemIndex = NumberOfFields - NumberOfExtensible  + (i * NumberOfExtensible) + j;
 
-
+                                    //Create new argument and add to Argument list. 
                                     Argument argument = new Argument(Fields[fieldIndex], items[itemIndex]);
                                     new_command.Arguments.Add(argument);
 
                                 }
                             }
-
-
-
-
-
                         }
                         tempstring = "";
                     }
@@ -606,13 +601,20 @@ namespace EnergyPlusLib
                     foreach (Argument argument in command.Arguments)
                     {
 
+                        String units = argument.Field.Units();
+                        if (units != null)
+                        {
+                            units = " {" + units  + "}";
+                        }
+
+
                         if (command.Arguments.Last() == argument)
                         {
-                            tempstring1 += "      " + argument.Value + ";\t\t\t\t !- " + argument.Field.Name() + " {" + argument.Field.Units() +"}\r\n" ;
+                            tempstring1 += String.Format("    {0,-50} !-{1,-50} \r\n", argument.Value + ";", argument.Field.Name() + units);
                         }
                         else
                         {
-                            tempstring1 += "      " + argument.Value + ",\t\t\t\t !- " + argument.Field.Name() + " {" + argument.Field.Units() + "}\r\n";
+                            tempstring1 += String.Format("    {0,-50} !-{1,-50} \r\n", argument.Value + ",", argument.Field.Name() + units);
                         }
 
                     }
@@ -626,11 +628,18 @@ namespace EnergyPlusLib
         }
 
         //Commands
-        public void CopyCommand(Command command){}
+        public void CopyCommand(Command command){
+
+        }
         public void AddNewCommand(Object Object){}
         public void DeleteCommand(Command command){}
 
 
     }
 }
+
+
+
+
+    
 
