@@ -13,7 +13,7 @@ namespace EnergyPlus
         {
             EPlusDataModel idd = EPlusDataModel.GetInstance();
             idd.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
-            idd.LoadIDFFile(@"C:\EnergyPlusV6-0-0\ExampleFiles\1ZoneEvapCooler.idf");
+            idd.LoadIDFFile(@"C:\EnergyPlusV6-0-0\ExampleFiles\BasicsFiles\Exercise1A.idf");
             idd.SaveIDFFile(@"C:\XXX\test.idf");
         }
     }
