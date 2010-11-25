@@ -285,17 +285,14 @@ namespace EnergyPlusLib
         public virtual string UserComments { get; set; }
         //IDF Arguments. 
         public IList<Argument> Arguments { get; set; }
-        //Extra Arguments that we may need for compliance or something else. 
-        public IList<Argument> EnhancedArguments { get; set; }
 
-        //Methods
-        //public IList<Command> FindChildren();
-        //public IList<Command> FindParents();
+        public List<List<Argument>> Extensibles { get; set; }
 
         public Command(Object Object) {
 
             this.Arguments = new List<Argument>();
             this.Object = Object;
+            this.Extensibles = new List<List<Argument>>();
         
         }
 
@@ -304,10 +301,8 @@ namespace EnergyPlusLib
 
         }
 
-        public void AddEnhancedArgument(Argument Argument)
-        {
+        public void AddExtensible(params Argument[] Arguments){} 
 
-        }
 
     }
 
@@ -570,6 +565,9 @@ namespace EnergyPlusLib
 
                             for (int i = 0; i < NumberOfGroups; i++)
                             {
+                                List<Argument> list = new List<Argument>(); 
+
+                                new_command.Extensibles.Add(list);
                                 for (int j = 1; j <= NumberOfExtensible; j++)
                                 {
 
@@ -578,6 +576,7 @@ namespace EnergyPlusLib
 
                                     //Create new argument and add to Argument list. 
                                     Argument argument = new Argument(Fields[fieldIndex], items[itemIndex]);
+                                    list.Add(argument);
                                     new_command.Arguments.Add(argument);
 
                                 }
@@ -598,7 +597,15 @@ namespace EnergyPlusLib
             {
                 string tempstring1 = command.Object.Name + ",\r\n";
 
-                    foreach (Argument argument in command.Arguments)
+                List<Argument> FullList = new List<Argument>();
+
+                FullList.AddRange(command.Arguments);
+                foreach (List<Argument> Arguments in command.Extensibles)
+                {
+                    FullList.AddRange(Arguments);
+                }
+
+                foreach (Argument argument in FullList)
                     {
 
                         String units = argument.Field.Units();
@@ -608,7 +615,7 @@ namespace EnergyPlusLib
                         }
 
 
-                        if (command.Arguments.Last() == argument)
+                        if (FullList.Last() == argument )
                         {
                             tempstring1 += String.Format("    {0,-50} !-{1,-50} \r\n", argument.Value + ";", argument.Field.Name() + units);
                         }
