@@ -312,6 +312,10 @@ namespace EnergyPlusLib
         private static EPlusDataModel instance = new EPlusDataModel();
         public IList<Object> IDDObjects;
         public IList<Command> IDFCommands;
+        
+        Dictionary<string, List<Object>> IDDObjectLists = new Dictionary<string, List<Object>>();
+
+
 
         public static EPlusDataModel GetInstance()
         {
@@ -330,15 +334,29 @@ namespace EnergyPlusLib
                      select field1).Distinct();
             return q.ToList<Field>();
         }
-        public List<Field> GetObjectList(String Reference)
+        public Dictionary<string,List<Object>> GetObjectList()
         {
 
-            var q = (from object1 in IDDObjects.AsEnumerable()
-                     from field1 in object1.Fields
-                     from fieldswitch in field1.Switches
-                     where fieldswitch.Name == @"\object-list"
-                     select field1).Distinct();
-            return q.ToList<Field>();
+            var q = from object1 in IDDObjects.AsEnumerable()
+                    from field1 in object1.Fields
+                    from fieldswitch in field1.Switches
+                    where fieldswitch.Name == @"\reference"
+                    select new
+                    {
+                        obj = object1,
+                        val = fieldswitch.Value,
+                    };
+                     q.Distinct();
+            foreach ( var x in q )
+            {
+               if ( !IDDObjectLists.ContainsKey(x.val) )
+               {
+                   List<Object> objectlist = new List<Object>();
+                   IDDObjectLists.Add(x.val, objectlist);
+               }
+                IDDObjectLists[x.val].Add(x.obj);
+            }
+            return IDDObjectLists;
         }
         public Object GetObject(string name)
         {
