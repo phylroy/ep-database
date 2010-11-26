@@ -57,7 +57,7 @@ namespace EnergyPlusLib
         public virtual Object Object { get; set; }
         public virtual IList<FieldSwitch> Switches { get; private set; }
         EPlusDataModel IDD = null;
-        public IList<Field> ObjectListTypeChoices = null;
+        public List<Object> ObjectListTypeChoices = null;
 
         public virtual bool UpdateRelationships()
         {
@@ -65,8 +65,7 @@ namespace EnergyPlusLib
             string ObjectList = this.ObjectList();
             if (ObjectList != null)
             {
-
-                ObjectListTypeChoices = IDD.GetObjectListReferences(ObjectList);
+                //ObjectListTypeChoices = IDD.GetObjectListReferences(ObjectList);
             }
 
 
@@ -168,7 +167,7 @@ namespace EnergyPlusLib
         public Field()
         {
             Switches = new List<FieldSwitch>();
-            ObjectListTypeChoices = new List<Field>();
+            ObjectListTypeChoices = new List<Object>();
         }
 
 
@@ -314,8 +313,6 @@ namespace EnergyPlusLib
         public IList<Command> IDFCommands;
         
         Dictionary<string, List<Object>> IDDObjectLists = new Dictionary<string, List<Object>>();
-
-
 
         public static EPlusDataModel GetInstance()
         {
