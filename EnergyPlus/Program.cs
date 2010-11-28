@@ -11,6 +11,7 @@ namespace EnergyPlus
     {
         static void Main(string[] args)
         {
+            int processors = Environment.ProcessorCount;
             EPlusDataModel idd = EPlusDataModel.GetInstance();
             idd.LoadIDDFile(@"C:\EnergyPlusV5-0-0\Energy+.idd");
             idd.LoadIDFFile(@"C:\EnergyPlusV5-0-0\ExampleFiles\BasicsFiles\Exercise1A.idf");
