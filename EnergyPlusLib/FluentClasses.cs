@@ -18,10 +18,9 @@ using System.Reflection;
 using System.Data.SQLite;
 using System.ComponentModel;
 /*To-Do
-
-
- * 2. Create basic IDF file from code.
- * 3. Run Simulation. 
+ * 1. Create basic IDF file from code.
+ * 2. Run Simulation.
+ * 3. read in gbXMl geomtry. 
  */
 
 
@@ -538,7 +537,7 @@ namespace EnergyPlusLib
         public Object Object;
         public virtual string UserComments { get; set; }
         public IList<Argument> RegularArguments { get; set; }
-        public List<List<Argument>> Extensibles { get; set; }
+        public List<List<Argument>> ExtensibleSetArguments { get; set; }
         public bool IsMuted;
         IDDDataModel idd;
         #endregion
@@ -559,12 +558,12 @@ namespace EnergyPlusLib
                 Argument arg = new Argument(field, field.Default());
                 ExtensibleSet.Add(arg);
             }
-            Extensibles.Add(ExtensibleSet);
+            ExtensibleSetArguments.Add(ExtensibleSet);
         }
         private Command()
         {
             this.RegularArguments = new List<Argument>();
-            this.Extensibles = new List<List<Argument>>();
+            this.ExtensibleSetArguments = new List<List<Argument>>();
             this.idd = IDDDataModel.GetInstance();
             this.IsMuted = false;
         }
@@ -580,19 +579,33 @@ namespace EnergyPlusLib
         #endregion
         #region General Methods
 
+        public List<Argument> FlattenedArgumentList()
+        {
+            List<Argument> ExtArgs = (from argumentsets in this.ExtensibleSetArguments
+                                      from argument in argumentsets
+                                      select argument).ToList<Argument>();
+
+            List<Argument> FullArgs = new List<Argument>();
+            FullArgs.AddRange(this.RegularArguments);
+            FullArgs.AddRange(ExtArgs);
+            return FullArgs;
+        }
+
         public void AddArgument(Argument Argument)
         {
             //stub
         }
-
         public String ToIDFString()
         {
-            string tempstring1 = this.Object.Name + ",\r\n";
+            string Prefix = "";
+            if (this.IsMuted) Prefix = "!";
+
+            string tempstring1 = Prefix + this.Object.Name + ",\r\n";
 
             List<Argument> FullList = new List<Argument>();
 
             FullList.AddRange(this.RegularArguments);
-            foreach (List<Argument> Arguments in this.Extensibles)
+            foreach (List<Argument> Arguments in this.ExtensibleSetArguments)
             {
                 FullList.AddRange(Arguments);
             }
@@ -607,16 +620,36 @@ namespace EnergyPlusLib
                 }
                 if (FullList.Last() == argument)
                 {
-                    tempstring1 += String.Format("    {0,-50} !-{1,-50} \r\n", argument.Value + ";", argument.Field.Name() + units);
+                    tempstring1 += String.Format(Prefix + "    {0,-50} !-{1,-50} \r\n", argument.Value + ";", argument.Field.Name() + units);
                 }
                 else
                 {
-                    tempstring1 += String.Format("    {0,-50} !-{1,-50} \r\n", argument.Value + ",", argument.Field.Name() + units);
+                    tempstring1 += String.Format(Prefix +"    {0,-50} !-{1,-50} \r\n", argument.Value + ",", argument.Field.Name() + units);
                 }
 
             }
             return tempstring1;
         }
+        public void SetArgument(String fieldname, String value)
+        {
+            List<Argument> Arguments = (from argument in this.FlattenedArgumentList()
+                                  where argument.Field.Name() == fieldname
+                                  select argument).ToList<Argument>();
+
+            Arguments.ForEach(delegate(Argument s) { s.Value = value ; });
+
+        }
+
+        public void SetArgumentbyDataName(String DataName, String value)
+        {
+            List<Argument> Arguments = (from argument in this.FlattenedArgumentList()
+                                        where argument.Field.DataName == DataName
+                                        select argument).ToList<Argument>();
+
+            Arguments.ForEach(delegate(Argument s) { s.Value = value; });
+
+        }
+
 
         #endregion
     }
@@ -726,7 +759,7 @@ namespace EnergyPlusLib
                 //remove regular argument items from List. 
                 items.RemoveRange(0, object_type.RegularFields.Count());
                 //Clear existing sets if any. 
-                new_command.Extensibles.Clear();
+                new_command.ExtensibleSetArguments.Clear();
                 for (int itemcounter = 0; itemcounter < items.Count; itemcounter = itemcounter + object_type.NumberOfExtensibleFields)
                 {
 
@@ -736,11 +769,19 @@ namespace EnergyPlusLib
                         ArgumentList.Add(new Argument(object_type.ExtensibleFields[fieldcounter], items[itemcounter + fieldcounter]));
 
                     }
-                    new_command.Extensibles.Add(ArgumentList);
+                    new_command.ExtensibleSetArguments.Add(ArgumentList);
                 }
             }
 
             return new_command;
+        }
+        public List<Command> FindCommandsFromObjectName(string ObjectName)
+        {
+
+           List<Command> commands = (from command in IDFCommands
+                                      where command.Object.Name == ObjectName
+                                      select command).ToList<Command>();
+           return commands;
         }
         public void SaveIDFFile(string path)
         {

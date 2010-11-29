@@ -12,15 +12,16 @@ namespace EnergyPlus
         static void Main(string[] args)
         {
             int processors = Environment.ProcessorCount;
-            IDFDataModel idd = new IDFDataModel();
-            idd.idd.LoadIDDFile(@"C:\EnergyPlusV5-0-0\Energy+.idd");
-            idd.LoadIDFFile(@"C:\EnergyPlusV5-0-0\ExampleFiles\BasicsFiles\Exercise1A.idf");
-            idd.SaveIDFFile(@"C:\test\test.idf");
+            IDFDataModel idf = new IDFDataModel();
+            idf.idd.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
+            idf.LoadIDFFile(@"C:\EnergyPlusV6-0-0\ExampleFiles\BasicsFiles\Exercise1A.idf");
 
-            IDFDataModel idd2 = new IDFDataModel();
-            idd.idd.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
-            idd.LoadIDFFile(@"C:\test\test.idf");
-            idd.SaveIDFFile(@"C:\test\test2.idf");
+            List<Command> BuildingSurfaces = idf.FindCommandsFromObjectName(@"BuildingSurface:Detailed");
+            BuildingSurfaces.ForEach(delegate(Command s) { s.IsMuted = true; });
+            BuildingSurfaces.ForEach(delegate(Command s) { s.SetArgument(@"Surface Type","Wall"); });
+            BuildingSurfaces.ForEach(delegate(Command s) { s.SetArgumentbyDataName(@"A2", "Floor"); });
+            idf.SaveIDFFile(@"C:\test\test.idf");
+
 
 
         }
