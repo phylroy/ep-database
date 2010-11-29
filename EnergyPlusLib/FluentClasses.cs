@@ -16,7 +16,7 @@ using System.Text.RegularExpressions;
 using Iesi.Collections;
 using System.Reflection;
 using System.Data.SQLite;
-
+using System.ComponentModel;
 /*To-Do
 
 
@@ -27,14 +27,15 @@ using System.Data.SQLite;
 
 namespace EnergyPlusLib
 {
-
-    //IDD classes.
+    //IDD Support Classes.
     public class ObjectSwitch
     {
-        //table data.
+        #region Properties
         public virtual string Name { get; set; }
         public virtual string Value { get; set; }
         public virtual Object Object { get; set; }
+        #endregion
+        #region Constructors
         public ObjectSwitch(string Name, string Value)
         {
             this.Name = Name;
@@ -43,30 +44,52 @@ namespace EnergyPlusLib
         public ObjectSwitch()
         {
         }
+        #endregion
     }
     public class FieldSwitch
     {
-        //table data.
+        #region Properties
         public virtual string Name { get; set; }
         public virtual string Value { get; set; }
         public virtual Field Field { get; set; }
+        #endregion
+        #region Constructors
         public FieldSwitch(string Name, string Value)
         {
             this.Name = Name;
             this.Value = Value;
         }
         public FieldSwitch() { }
+        #endregion
     }
     public class Field
     {
-        //table data.
+        #region Properties
         public virtual String DataName { get; private set; }
         public virtual int Order { get; set; }
         public virtual Object Object { get; set; }
         public virtual IList<FieldSwitch> Switches { get; private set; }
-        EPlusDataModel IDD = null;
         public List<Object> ObjectListTypeChoices = null;
+        #endregion
+        #region Constructors
+        public Field(string DataName, int Order, Object Object)
+            : this()
+        {
 
+            this.DataName = DataName;
+            this.Order = Order;
+            this.Object = Object;
+
+        }
+
+        public Field()
+        {
+            Switches = new List<FieldSwitch>();
+            ObjectListTypeChoices = new List<Object>();
+        }
+
+        #endregion
+        #region General Methods
         public virtual bool UpdateRelationships()
         {
             //Add all the Field types that could be used to populate this field if needed. 
@@ -79,10 +102,13 @@ namespace EnergyPlusLib
 
             return true;
         }
-
-
-        #region Energyplus Field switch types.
-
+        public FieldSwitch FindSwitch(string switch_name)
+        {
+            var result = from Switch in Switches
+                         where Switch.Name == switch_name
+                         select Switch;
+            return result.FirstOrDefault();
+        }
         public string FindSwitchValue(string switch_name)
         {
             var result = from Switch in Switches
@@ -90,6 +116,13 @@ namespace EnergyPlusLib
                          select Switch.Value;
             return result.FirstOrDefault();
         }
+        public virtual void AddSwitch(FieldSwitch Switch)
+        {
+            this.Switches.Add(Switch);
+        }
+        #endregion
+        #region Energyplus Field Switch Methods.
+
 
         public IList<string> FindSwitchValues(string switch_name)
         {
@@ -164,42 +197,26 @@ namespace EnergyPlusLib
         public IList<string> References()
         { return FindSwitchValues(@"\reference"); }
         #endregion
-
-        public Field(string DataName, int Order, Object Object)
-            : this()
-        {
-            IDD = EPlusDataModel.GetInstance();
-            this.DataName = DataName;
-            this.Order = Order;
-            this.Object = Object;
-
-        }
-
-        public Field()
-        {
-            Switches = new List<FieldSwitch>();
-            ObjectListTypeChoices = new List<Object>();
-        }
-
-
-        public virtual void AddSwitch(FieldSwitch Switch)
-        {
-            this.Switches.Add(Switch);
-        }
-
     }
     public class Object
     {
-        //table data. 
+        #region Properties
         public virtual string Name { get; set; }
-        public virtual IList<ObjectSwitch> Switches { get; set; }
-
+        public virtual List<ObjectSwitch> Switches { get; set; }
         public virtual List<Field> RegularFields { get; set; }
         public virtual int NumberOfRegularFields { get; set; }
-
         public virtual List<Field> ExtensibleFields { get; set; }
         public virtual int NumberOfExtensibleFields { get; set; }
         public virtual string Group { get; set; }
+        #endregion
+        #region Constructors
+        public Object()
+        {
+
+            this.Switches = new List<ObjectSwitch>();
+            this.RegularFields = new List<Field>();
+            this.ExtensibleFields = new List<Field>();
+        }
         public Object(string Name, string Group)
             : this()
         {
@@ -207,25 +224,16 @@ namespace EnergyPlusLib
             this.Group = Group;
 
         }
-
-        public Object()
-        {
-            EPlusDataModel IDD = EPlusDataModel.GetInstance();
-            this.Switches = new List<ObjectSwitch>();
-            this.RegularFields = new List<Field>();
-            this.ExtensibleFields = new List<Field>();
-        }
-
+        #endregion
+        # region General Methods.
         public virtual void AddSwitch(ObjectSwitch switch_pass)
         {
             Switches.Add(switch_pass);
         }
-
         public virtual void AddField(Field Field_pass)
         {
             RegularFields.Add(Field_pass);
         }
-
         public virtual void SortFields()
         {
             this.NumberOfRegularFields = this.RegularFields.Count();
@@ -235,7 +243,8 @@ namespace EnergyPlusLib
                 this.NumberOfRegularFields = this.RegularFields.Count() - this.NumberOfExtensibleFields;
                 if (this.NumberOfRegularFields == 0)
                 {
-
+                    FieldSwitch switch1 = this.RegularFields[0].FindSwitch(@"\field");
+                    switch1.Value = Regex.Replace(switch1.Value, @" (1)", @" ");
                     this.ExtensibleFields.Add(this.RegularFields[0]);
                     this.RegularFields.RemoveAt(0);
                 }
@@ -244,6 +253,8 @@ namespace EnergyPlusLib
                     for (int iField = this.NumberOfRegularFields; iField <= (this.NumberOfRegularFields + this.NumberOfExtensibleFields) - 1; iField++)
                     {
 
+                        FieldSwitch switch1 = this.RegularFields[iField].FindSwitch(@"\field");
+                        switch1.Value = Regex.Replace(switch1.Value, @" (1)", @" ");
 
                         this.ExtensibleFields.Add(this.RegularFields[iField]);
                         //this.RegularFields.Remove(this.RegularFields[iField]);
@@ -254,8 +265,6 @@ namespace EnergyPlusLib
             }
 
         }
-
-        # region General Methods.
         public string FindSwitchValue(string switch_name)
         {
             var result = from Switch in Switches
@@ -263,7 +272,6 @@ namespace EnergyPlusLib
                          select Switch.Value;
             return result.FirstOrDefault();
         }
-
         public IList<string> FindSwitchValues(string switch_name)
         {
             var result = from Switch in Switches
@@ -271,7 +279,8 @@ namespace EnergyPlusLib
                          select Switch.Value;
             return result.ToList<String>();
         }
-
+        #endregion
+        #region IDD Switch Methods
         public bool IsSwitchPresent(string switch_name)
         {
             bool value = false;
@@ -305,134 +314,18 @@ namespace EnergyPlusLib
         #endregion
     }
 
-    //IDF Classes. 
-    public class Argument
+    //IDD DataModel.
+    public class IDDDataModel
     {
-        public Field Field;
-        public string Value;
-
-        public Argument(Field field, string Value)
-        {
-
-            this.Field = field;
-            this.Value = Value;
-
-        }
-
-    }
-    public class Command
-    {
-        public Object Object;
-        public virtual string UserComments { get; set; }
-        //IDF Arguments. 
-        public IList<Argument> RegularArguments { get; set; }
-
-        public List<List<Argument>> Extensibles { get; set; }
-
-        //Creates an empty command of type object with defaults. 
-        public Command(Object Object)
-            : this()
-        {
-            this.Object = Object;
-            foreach (Field field in Object.RegularFields)
-            {
-                Argument arg = new Argument(field, field.Default());
-                this.RegularArguments.Add(arg);
-            }
-
-            List<Argument> ExtensibleSet = new List<Argument>();
-            foreach (Field field in this.Object.ExtensibleFields)
-            {
-                Argument arg = new Argument(field, field.Default());
-                ExtensibleSet.Add(arg);
-            }
-            Extensibles.Add(ExtensibleSet);
-        }
-
-        private Command()
-        {
-            this.RegularArguments = new List<Argument>();
-            this.Extensibles = new List<List<Argument>>();
-
-        }
-
-        public Command(Object Object, params Argument[] Arguments)
-            : this(Object)
-        {
-            //stub
-        }
-
-        public Command(string sCommand)
-        {
-            //stub
-        }
-
-
-        public void AddArgument(Argument Argument)
-        {
-            //stub
-        }
-
-        public void AddExtensible(params Argument[] Arguments) { }
-
-
-        public String ToIDFString()
-        {
-            string tempstring1 = this.Object.Name + ",\r\n";
-
-            List<Argument> FullList = new List<Argument>();
-
-            FullList.AddRange(this.RegularArguments);
-            foreach (List<Argument> Arguments in this.Extensibles)
-            {
-                FullList.AddRange(Arguments);
-            }
-
-            foreach (Argument argument in FullList)
-            {
-
-                String units = argument.Field.Units();
-                if (units != null)
-                {
-                    units = " {" + units + "}";
-                }
-                if (FullList.Last() == argument)
-                {
-                    tempstring1 += String.Format("    {0,-50} !-{1,-50} \r\n", argument.Value + ";", argument.Field.Name() + units);
-                }
-                else
-                {
-                    tempstring1 += String.Format("    {0,-50} !-{1,-50} \r\n", argument.Value + ",", argument.Field.Name() + units);
-                }
-
-            }
-            return tempstring1;
-        }
-
-
-
-    }
-
-    //EPlus Methods. 
-    public class EPlusDataModel
-    {
-        private static EPlusDataModel instance = new EPlusDataModel();
-        public IList<Object> IDDObjects;
-        public IList<Command> IDFCommands;
-
-        Dictionary<string, List<Object>> IDDObjectLists = new Dictionary<string, List<Object>>();
-
-        public static EPlusDataModel GetInstance()
+        private static IDDDataModel instance = new IDDDataModel();
+        private IDDDataModel() { }
+        public static IDDDataModel GetInstance()
         {
             return instance;
         }
-        private EPlusDataModel()
-        {
-            this.IDDObjects = new List<Object>();
-            this.IDFCommands = new List<Command>();
-        }
-
-
+        public IList<Object> IDDObjects;
+        Dictionary<string, List<Object>> IDDObjectLists = new Dictionary<string, List<Object>>();
+        #region IDD Methods
         public List<Field> GetObjectListReferences(String Reference)
         {
 
@@ -474,13 +367,6 @@ namespace EnergyPlusLib
                     select object1;
             return q.FirstOrDefault();
         }
-
-        public List<Command> ReadCommands(String stringin)
-        {
-            List<Command> CommandList = new List<Command>();
-            return CommandList;
-        }
-
         public void LoadIDDFile(string path)
         {
 
@@ -560,7 +446,7 @@ namespace EnergyPlusLib
                         //Found First Switch. 
                         //Get rid of the "1" if it is an extensible field as to not confuse people. 
                         string field_switch = @"\field";
-                        string field_switch_value = Regex.Replace(field_match.Groups[4].ToString().Trim(), @" (1)", @" ");
+                        string field_switch_value = field_match.Groups[4].ToString().Trim();
                         current_field.AddSwitch(new FieldSwitch(field_switch, field_switch_value));
 
                         if (bBeginExtensible == true) iExtensible--;
@@ -599,7 +485,7 @@ namespace EnergyPlusLib
                     {
                         //new field switch.
                         string field_switch = switch_match.Groups[1].ToString().Trim();
-                        string field_switch_value = Regex.Replace(switch_match.Groups[2].ToString().Trim(), @" (1)", @" ");
+                        string field_switch_value = switch_match.Groups[2].ToString().Trim();
                         //Get rid of the "1" if it is an extensible field as to not confuse people. 
                         current_field.AddSwitch(new FieldSwitch(field_switch, field_switch_value));
 
@@ -615,7 +501,7 @@ namespace EnergyPlusLib
             }
             //Sort fields in all objects. 
             foreach (Object obj in IDDObjects) { obj.SortFields(); }
-
+            GetObjectList();
 
 
             var q = from object1 in IDDObjects
@@ -626,8 +512,139 @@ namespace EnergyPlusLib
 
 
         }
+        #endregion
+    }
+
+    //IDF Support Classes. 
+    public class Argument
+    {
+        #region Properties
+        public Field Field;
+        public string Value;
+        public IDDDataModel idd;
+        #endregion
+        #region Constructor
+        public Argument(Field field, string Value)
+        {
+            this.Field = field;
+            this.Value = Value;
+            idd = IDDDataModel.GetInstance();
+        }
+        #endregion
+    }
+    public class Command
+    {
+        #region Properties
+        public Object Object;
+        public virtual string UserComments { get; set; }
+        public IList<Argument> RegularArguments { get; set; }
+        public List<List<Argument>> Extensibles { get; set; }
+        public bool IsMuted;
+        IDDDataModel idd;
+        #endregion
+        #region Constructors
+        public Command(Object Object)
+            : this()
+        {
+            this.Object = Object;
+            foreach (Field field in Object.RegularFields)
+            {
+                Argument arg = new Argument(field, field.Default());
+                this.RegularArguments.Add(arg);
+            }
+
+            List<Argument> ExtensibleSet = new List<Argument>();
+            foreach (Field field in this.Object.ExtensibleFields)
+            {
+                Argument arg = new Argument(field, field.Default());
+                ExtensibleSet.Add(arg);
+            }
+            Extensibles.Add(ExtensibleSet);
+        }
+        private Command()
+        {
+            this.RegularArguments = new List<Argument>();
+            this.Extensibles = new List<List<Argument>>();
+            this.idd = IDDDataModel.GetInstance();
+            this.IsMuted = false;
+        }
+        public Command(Object Object, params Argument[] Arguments)
+            : this(Object)
+        {
+            //stub
+        }
+        public Command(string sCommand)
+        {
+            //stub
+        }
+        #endregion
+        #region General Methods
+
+        public void AddArgument(Argument Argument)
+        {
+            //stub
+        }
+
+        public String ToIDFString()
+        {
+            string tempstring1 = this.Object.Name + ",\r\n";
+
+            List<Argument> FullList = new List<Argument>();
+
+            FullList.AddRange(this.RegularArguments);
+            foreach (List<Argument> Arguments in this.Extensibles)
+            {
+                FullList.AddRange(Arguments);
+            }
+
+            foreach (Argument argument in FullList)
+            {
+
+                String units = argument.Field.Units();
+                if (units != null)
+                {
+                    units = " {" + units + "}";
+                }
+                if (FullList.Last() == argument)
+                {
+                    tempstring1 += String.Format("    {0,-50} !-{1,-50} \r\n", argument.Value + ";", argument.Field.Name() + units);
+                }
+                else
+                {
+                    tempstring1 += String.Format("    {0,-50} !-{1,-50} \r\n", argument.Value + ",", argument.Field.Name() + units);
+                }
+
+            }
+            return tempstring1;
+        }
+
+        #endregion
+    }
+
+    //IDF DataModel. 
+    public class IDFDataModel
+    {
+        #region Properties
+        public IDDDataModel idddata = IDDDataModel.GetInstance();
+        public IList<Command> IDFCommands;
+        Dictionary<string, List<Object>> IDDObjectLists = new Dictionary<string, List<Object>>();
+        public IDDDataModel idd = IDDDataModel.GetInstance();
+        #endregion
+        #region Constructor
+        public IDFDataModel()
+        {
+            this.IDFCommands = new List<Command>();
+        }
+        #endregion
+        #region IDF Methods
+        public List<Command> ReadCommands(String stringin)
+        {
+            List<Command> CommandList = new List<Command>();
+            return CommandList;
+        }
         public void LoadIDFFile(string path)
         {
+            IDFCommands.Clear();
             //Read file into string List. 
             List<String> idfListString = File.ReadAllLines(path).ToList<string>();
 
@@ -638,7 +655,6 @@ namespace EnergyPlusLib
                 IDFCommands.Add(GetCommandFromString(commandstring));
             }
         }
-
         private List<string> CleanCommandStrings(List<String> idfListString)
         {
             List<string> CommandStrings = new List<String>();
@@ -682,7 +698,6 @@ namespace EnergyPlusLib
             }
             return CommandStrings;
         }
-
         private Command GetCommandFromString(string tempstring)
         {
 
@@ -693,7 +708,7 @@ namespace EnergyPlusLib
             List<string> items = tempstring.Split(',').ToList<string>();
 
             //find object.
-            Object object_type = GetObject(items[0].Trim());
+            Object object_type = idd.GetObject(items[0].Trim());
             new_command = new Command(object_type);
             //remove name from List.
             items.RemoveAt(0);
@@ -727,27 +742,17 @@ namespace EnergyPlusLib
 
             return new_command;
         }
-
         public void SaveIDFFile(string path)
         {
             TextWriter tw = new StreamWriter(path);
 
             foreach (Command command in IDFCommands)
             {
-                tw.WriteLine( command.ToIDFString() );
+                tw.WriteLine(command.ToIDFString());
             }
             tw.Close();
         }
-
-        //Commands
-        public void CopyCommand(Command command)
-        {
-
-        }
-        public void AddNewCommand(Object Object) { }
-        public void DeleteCommand(Command command) { }
-
-
+        #endregion
     }
 }
 
