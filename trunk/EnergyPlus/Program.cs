@@ -22,7 +22,7 @@ namespace EnergyPlus
             BuildingSurfaces.ForEach(delegate(Command s) { s.SetArgumentbyDataName(@"A2", "Floor"); });
             idf.SaveIDFFile(@"C:\test\test.idf");
 
-
+            idf.ProcessEnergyPlusSimulation(@"C:\EnergyPlusV6-0-0\ExampleFiles\HospitalLowEnergy.idf", @"C:\EnergyPlusV6-0-0");
 
         }
     }

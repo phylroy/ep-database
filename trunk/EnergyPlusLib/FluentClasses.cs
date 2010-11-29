@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using FluentNHibernate;
-using FluentNHibernate.Mapping;
-using FluentNHibernate.Cfg;
-using FluentNHibernate.Cfg.Db;
-using NHibernate;
-using NHibernate.Cfg;
-using NHibernate.Tool.hbm2ddl;
-using NHibernate.ByteCode.Castle;
+using System.Diagnostics;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.IO;
@@ -618,7 +612,7 @@ namespace EnergyPlusLib
                 }
                 else
                 {
-                    tempstring1 += String.Format(Prefix +"    {0,-50} !-{1,-50} \r\n", argument.Value + ",", argument.Field.Name() + units);
+                    tempstring1 += String.Format(Prefix + "    {0,-50} !-{1,-50} \r\n", argument.Value + ",", argument.Field.Name() + units);
                 }
 
             }
@@ -627,10 +621,10 @@ namespace EnergyPlusLib
         public void SetArgument(String fieldname, String value)
         {
             List<Argument> Arguments = (from argument in this.FlattenedArgumentList()
-                                  where argument.Field.Name() == fieldname
-                                  select argument).ToList<Argument>();
+                                        where argument.Field.Name() == fieldname
+                                        select argument).ToList<Argument>();
 
-            Arguments.ForEach(delegate(Argument s) { s.Value = value ; });
+            Arguments.ForEach(delegate(Argument s) { s.Value = value; });
 
         }
 
@@ -772,10 +766,10 @@ namespace EnergyPlusLib
         public List<Command> FindCommandsFromObjectName(string ObjectName)
         {
 
-           List<Command> commands = (from command in IDFCommands
+            List<Command> commands = (from command in IDFCommands
                                       where command.Object.Name == ObjectName
                                       select command).ToList<Command>();
-           return commands;
+            return commands;
         }
         public void SaveIDFFile(string path)
         {
@@ -787,7 +781,75 @@ namespace EnergyPlusLib
             }
             tw.Close();
         }
+
+
+
+
+
+        public bool ProcessEnergyPlusSimulation(string idf_input_file, string energyplus_root_folder)
+        {
+
+            string idf_folder_path = Path.GetDirectoryName(idf_input_file);
+            string folder_name = idf_folder_path + @"\test";
+            string lines = "[program]\r\ndir=" + energyplus_root_folder;
+            string file_name = folder_name + "\\in.idf";
+            string ini_file_name = folder_name + "\\energy+.ini";
+            if (System.IO.Directory.Exists(folder_name)) {System.IO.Directory.Delete(folder_name, true);}
+
+            System.IO.Directory.CreateDirectory(folder_name);
+            File.Copy(idf_input_file, file_name);
+
+            System.IO.StreamWriter file = new System.IO.StreamWriter(ini_file_name);
+            file.WriteLine(lines);
+            file.Close();
+
+            File.Copy("C:\\EnergyPlusV6-0-0\\WeatherData\\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw", folder_name + "\\in.epw");
+            string startdirectory = System.IO.Directory.GetCurrentDirectory();
+            System.IO.Directory.SetCurrentDirectory(folder_name);
+
+            Process EPProcess = new Process();
+            ProcessStartInfo EPStartInfo = new ProcessStartInfo();
+
+            EPStartInfo.FileName = "CMD.exe ";
+
+            EPStartInfo.RedirectStandardError = false;
+            EPStartInfo.RedirectStandardOutput = false;
+            EPStartInfo.RedirectStandardInput = false;
+
+            EPStartInfo.UseShellExecute = false;
+            //Dont show a command window
+            EPStartInfo.CreateNoWindow = false;
+
+            EPStartInfo.Arguments = "/D /c " + @"C:\EnergyPlusV6-0-0\" + "energyplus.exe";
+
+            EPProcess.EnableRaisingEvents = true;
+            EPProcess.StartInfo = EPStartInfo;
+
+            //start cmd.exe & the EP process
+            EPProcess.Start();
+
+            //set the wait period for exiting the process
+            EPProcess.WaitForExit(1500000000); //or the wait time you want
+
+            int ExitCode = EPProcess.ExitCode;
+            bool EPSuccessful = true;
+
+            //Now we need to see if the process was successful
+            if (ExitCode > 0 & !EPProcess.HasExited)
+            {
+                EPProcess.Kill();
+                EPSuccessful = false;
+            }
+
+            //now clean up after ourselves
+            EPProcess.Dispose();
+            //EPProcess.StartInfo = null;
+            return EPSuccessful;
+        }
         #endregion
+
+
+
     }
 }
 
