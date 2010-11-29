@@ -602,13 +602,7 @@ namespace EnergyPlusLib
 
             string tempstring1 = Prefix + this.Object.Name + ",\r\n";
 
-            List<Argument> FullList = new List<Argument>();
-
-            FullList.AddRange(this.RegularArguments);
-            foreach (List<Argument> Arguments in this.ExtensibleSetArguments)
-            {
-                FullList.AddRange(Arguments);
-            }
+            List<Argument> FullList = FlattenedArgumentList();
 
             foreach (Argument argument in FullList)
             {
