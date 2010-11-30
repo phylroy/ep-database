@@ -12,8 +12,7 @@ using System.Reflection;
 using System.Data.SQLite;
 using System.ComponentModel;
 /*To-Do
- * 1. Create basic IDF file from code.
- * 2. Run Simulation.
+ * 1. Fix Construction.
  * 3. read in gbXMl geomtry. 
  */
 
@@ -309,15 +308,19 @@ namespace EnergyPlusLib
 
     //IDD DataModel.
     public class IDDDataModel
-    {
+    {   
+        #region Singleton Contructor
         private static IDDDataModel instance = new IDDDataModel();
         private IDDDataModel() { }
         public static IDDDataModel GetInstance()
         {
             return instance;
         }
+        #endregion
+        #region Properties
         public IList<Object> IDDObjects;
         Dictionary<string, List<Object>> IDDObjectLists = new Dictionary<string, List<Object>>();
+        #endregion
         #region IDD Methods
         public List<Field> GetObjectListReferences(String Reference)
         {
@@ -584,7 +587,6 @@ namespace EnergyPlusLib
             FullArgs.AddRange(ExtArgs);
             return FullArgs;
         }
-
         public void AddArgument(Argument Argument)
         {
             //stub
@@ -595,9 +597,19 @@ namespace EnergyPlusLib
             if (this.IsMuted) Prefix = "!";
 
             string tempstring1 = Prefix + this.Object.Name + ",\r\n";
+            List<Argument> FullList;
+            FullList = FlattenedArgumentList();
 
-            List<Argument> FullList = FlattenedArgumentList();
-
+            //Workaround for cosntruction types. 
+            if (this.Object.Name.ToUpper() == "Construction".ToUpper()
+                || this.Object.Name.ToUpper() == "ZoneControl:Thermostat".ToUpper())
+            {
+                FullList = new List<Argument>();
+                FullList = (from arg in FlattenedArgumentList()
+                            where arg.Value != null
+                            select arg).ToList<Argument>();
+            }
+            
             foreach (Argument argument in FullList)
             {
 
@@ -618,6 +630,49 @@ namespace EnergyPlusLib
             }
             return tempstring1;
         }
+
+        public String ToIDFStringTerse()
+        {
+            string Prefix = "";
+            if (this.IsMuted) Prefix = "!";
+
+            string tempstring1 = Prefix + this.Object.Name + ",";
+            List<Argument> FullList;
+            FullList = FlattenedArgumentList();
+
+            //Workaround for cosntruction types. 
+            if (this.Object.Name.ToUpper() == "Construction".ToUpper()
+                || this.Object.Name.ToUpper() == "ZoneControl:Thermostat".ToUpper())
+            {
+                FullList = new List<Argument>();
+                FullList = (from arg in FlattenedArgumentList()
+                            where arg.Value != null
+                            select arg).ToList<Argument>();
+            }
+
+            foreach (Argument argument in FullList)
+            {
+
+                String units = argument.Field.Units();
+                if (units != null)
+                {
+                    units = " {" + units + "}";
+                }
+                if (FullList.Last() == argument)
+                {
+                    tempstring1 += String.Format(Prefix + "{0}\r\n", argument.Value + ";");
+                }
+                else
+                {
+                    tempstring1 += String.Format(Prefix + "{0}", argument.Value + ",");
+                }
+
+            }
+            return tempstring1;
+        }
+
+
+
         public void SetArgument(String fieldname, String value)
         {
             List<Argument> Arguments = (from argument in this.FlattenedArgumentList()
@@ -627,7 +682,6 @@ namespace EnergyPlusLib
             Arguments.ForEach(delegate(Argument s) { s.Value = value; });
 
         }
-
         public void SetArgumentbyDataName(String DataName, String value)
         {
             List<Argument> Arguments = (from argument in this.FlattenedArgumentList()
@@ -637,8 +691,6 @@ namespace EnergyPlusLib
             Arguments.ForEach(delegate(Argument s) { s.Value = value; });
 
         }
-
-
         #endregion
     }
 
@@ -648,6 +700,13 @@ namespace EnergyPlusLib
         #region Properties
         public IDDDataModel idddata = IDDDataModel.GetInstance();
         public IList<Command> IDFCommands;
+
+        public string sEnergyPlusRootFolder;
+ 
+
+        private string sIDFFileName;
+
+
         Dictionary<string, List<Object>> IDDObjectLists = new Dictionary<string, List<Object>>();
         public IDDDataModel idd = IDDDataModel.GetInstance();
         #endregion
@@ -658,22 +717,18 @@ namespace EnergyPlusLib
         }
         #endregion
         #region IDF Methods
-        public List<Command> ReadCommands(String stringin)
+        public void LoadIDFFile(string sIDFFileName)
         {
-            List<Command> CommandList = new List<Command>();
-            return CommandList;
-        }
-        public void LoadIDFFile(string path)
-        {
+            this.sIDFFileName = sIDFFileName;
             IDFCommands.Clear();
             //Read file into string List. 
-            List<String> idfListString = File.ReadAllLines(path).ToList<string>();
+            List<String> idfListString = File.ReadAllLines(this.sIDFFileName).ToList<string>();
 
             //find command strings and reformat. 
             List<string> CommandStrings = CleanCommandStrings(idfListString);
             foreach (string commandstring in CommandStrings)
             {
-                IDFCommands.Add(GetCommandFromString(commandstring));
+                IDFCommands.Add(GetCommandFromTextString(commandstring));
             }
         }
         private List<string> CleanCommandStrings(List<String> idfListString)
@@ -719,7 +774,7 @@ namespace EnergyPlusLib
             }
             return CommandStrings;
         }
-        private Command GetCommandFromString(string tempstring)
+        private Command GetCommandFromTextString(string tempstring)
         {
 
             Command new_command;
@@ -777,33 +832,44 @@ namespace EnergyPlusLib
 
             foreach (Command command in IDFCommands)
             {
-                tw.WriteLine(command.ToIDFString());
+                tw.WriteLine(command.ToIDFStringTerse());
             }
             tw.Close();
         }
-
-
-
-
-
-        public bool ProcessEnergyPlusSimulation(string idf_input_file, string energyplus_root_folder)
+        public void DeleteCommands(string sObjectName)
+        {
+            FindCommandsFromObjectName(sObjectName).ForEach(delegate(Command cmd) { IDFCommands.Remove(cmd); });
+        }
+        public void ChangeSimulationPeriod(int startmonth, int startday, int endmonth, int endday)
+        {
+            //removes any exisiting entries of simulation control or Runperiod. 
+            this.DeleteCommands("SimulationControl");
+            this.DeleteCommands("RunPeriod");
+            this.IDFCommands.Add(GetCommandFromTextString("SimulationControl,Yes,Yes,Yes,Yes,Yes;"));
+            this.IDFCommands.Add(
+                GetCommandFromTextString(
+                String.Format(
+                "RunPeriod,FullYear,{0},{1},{2},{3},UseWeatherFile,Yes,Yes,No,Yes,Yes,1;",
+                startmonth, startday, endmonth, endday)
+                ));
+        }
+        public bool ProcessEnergyPlusSimulation()
         {
 
-            string idf_folder_path = Path.GetDirectoryName(idf_input_file);
+            string idf_folder_path = Path.GetDirectoryName(this.sIDFFileName);
             string folder_name = idf_folder_path + @"\test";
-            string lines = "[program]\r\ndir=" + energyplus_root_folder;
-            string file_name = folder_name + "\\in.idf";
+            string lines = "[program]\r\ndir=" + sEnergyPlusRootFolder;
+            string file_name = folder_name + "\\in2.idf";
             string ini_file_name = folder_name + "\\energy+.ini";
-            if (System.IO.Directory.Exists(folder_name)) {System.IO.Directory.Delete(folder_name, true);}
+            if (System.IO.Directory.Exists(folder_name)) { System.IO.Directory.Delete(folder_name, true); }
 
             System.IO.Directory.CreateDirectory(folder_name);
-            File.Copy(idf_input_file, file_name);
+            this.SaveIDFFile(file_name);
 
             System.IO.StreamWriter file = new System.IO.StreamWriter(ini_file_name);
             file.WriteLine(lines);
             file.Close();
 
-            File.Copy("C:\\EnergyPlusV6-0-0\\WeatherData\\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw", folder_name + "\\in.epw");
             string startdirectory = System.IO.Directory.GetCurrentDirectory();
             System.IO.Directory.SetCurrentDirectory(folder_name);
 
@@ -813,14 +879,17 @@ namespace EnergyPlusLib
             EPStartInfo.FileName = "CMD.exe ";
 
             EPStartInfo.RedirectStandardError = false;
-            EPStartInfo.RedirectStandardOutput = false;
+
             EPStartInfo.RedirectStandardInput = false;
+            EPProcess.StartInfo.UseShellExecute = false;
+            EPProcess.StartInfo.RedirectStandardOutput = true;
+
 
             EPStartInfo.UseShellExecute = false;
             //Dont show a command window
             EPStartInfo.CreateNoWindow = false;
 
-            EPStartInfo.Arguments = "/D /c " + @"C:\EnergyPlusV6-0-0\" + "energyplus.exe";
+            EPStartInfo.Arguments = "/D /c " + sEnergyPlusRootFolder + "RunEPlus.bat in2 USA_CA_San.Francisco.Intl.AP.724940_TMY3";
 
             EPProcess.EnableRaisingEvents = true;
             EPProcess.StartInfo = EPStartInfo;
@@ -847,9 +916,6 @@ namespace EnergyPlusLib
             return EPSuccessful;
         }
         #endregion
-
-
-
     }
 }
 
