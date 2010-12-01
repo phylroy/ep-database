@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using Iesi.Collections;
 using System.Reflection;
 using System.Data.SQLite;
-using System.ComponentModel;
+
 /*To-Do
  * 1. Fix Construction.
  * 3. read in gbXMl geomtry. 
@@ -235,10 +235,13 @@ namespace EnergyPlusLib
                 this.NumberOfRegularFields = this.RegularFields.Count() - this.NumberOfExtensibleFields;
                 if (this.NumberOfRegularFields == 0)
                 {
-                    FieldSwitch switch1 = this.RegularFields[0].FindSwitch(@"\field");
-                    switch1.Value = Regex.Replace(switch1.Value, @" (1)", @" ");
-                    this.ExtensibleFields.Add(this.RegularFields[0]);
-                    this.RegularFields.RemoveAt(0);
+                    for (int i = 0; i < this.RegularFields.Count(); i++)
+                    {
+                        FieldSwitch switch1 = this.RegularFields[i].FindSwitch(@"\field");
+                        switch1.Value = Regex.Replace(switch1.Value, @" (1)", @" ");
+                        this.ExtensibleFields.Add(this.RegularFields[i]);
+                    }
+                    this.RegularFields.Clear();
                 }
                 else
                 {
@@ -308,7 +311,7 @@ namespace EnergyPlusLib
 
     //IDD DataModel.
     public class IDDDataModel
-    {   
+    {
         #region Singleton Contructor
         private static IDDDataModel instance = new IDDDataModel();
         private IDDDataModel() { }
@@ -602,14 +605,30 @@ namespace EnergyPlusLib
 
             //Workaround for cosntruction types. 
             if (this.Object.Name.ToUpper() == "Construction".ToUpper()
-                || this.Object.Name.ToUpper() == "ZoneControl:Thermostat".ToUpper())
+                || this.Object.Name.ToUpper() == "ZoneControl:Thermostat".ToUpper()
+                || this.Object.Name.ToUpper() == "FluidProperties:Temperatures".ToUpper()
+                || this.Object.Name.ToUpper() == "FluidProperties:Saturated".ToUpper()
+                || this.Object.Name.ToUpper() == "FluidProperties:Superheated".ToUpper()
+                || this.Object.Name.ToUpper() == "AirLoopHVAC:ControllerList".ToUpper()
+                || this.Object.Name.ToUpper() == "AirLoopHVAC:OutdoorAirSystem:EquipmentList".ToUpper()
+                || this.Object.Name.ToUpper() == "PlantEquipmentList".ToUpper()
+                || this.Object.Name.ToUpper() == "CondenserEquipmentList".ToUpper()
+                || this.Object.Name.ToUpper() == "PlantEquipmentOperation:CoolingLoad,".ToUpper()
+                || this.Object.Name.ToUpper() == "PlantEquipmentOperation:HeatingLoad".ToUpper()
+                || this.Object.Name.ToUpper() == "PlantEquipmentOperation:ComponentSetpoint".ToUpper()
+                || this.Object.Name.ToUpper() == "PlantEquipmentOperationSchemes".ToUpper()
+                || this.Object.Name.ToUpper() == "CondenserEquipmentOperationSchemes".ToUpper()
+                || this.Object.Name.ToUpper() == "PlantEquipmentOperation:ComponentSetpoint".ToUpper()
+                || this.Object.Name.ToUpper() == "PlantEquipmentOperation:CoolingLoad".ToUpper()
+                || this.Object.Name.ToUpper() == "PlantEquipmentOperation:ComponentSetpoint".ToUpper()
+                )
             {
                 FullList = new List<Argument>();
                 FullList = (from arg in FlattenedArgumentList()
                             where arg.Value != null
                             select arg).ToList<Argument>();
             }
-            
+
             foreach (Argument argument in FullList)
             {
 
@@ -676,10 +695,10 @@ namespace EnergyPlusLib
         public void SetArgument(String fieldname, String value)
         {
             List<Argument> Arguments = (from argument in this.FlattenedArgumentList()
-                                        where argument.Field.Name() == fieldname
+                                        where argument.Field.Name().ToLower() == fieldname.Trim().ToLower()
                                         select argument).ToList<Argument>();
 
-            Arguments.ForEach(delegate(Argument s) { s.Value = value; });
+            Arguments.ForEach(delegate(Argument s) { s.Value = value.Trim(); });
 
         }
         public void SetArgumentbyDataName(String DataName, String value)
@@ -702,9 +721,8 @@ namespace EnergyPlusLib
         public IList<Command> IDFCommands;
 
         public string sEnergyPlusRootFolder;
- 
-
-        private string sIDFFileName;
+        public string sIDFFileName;
+        public string sWeatherFile;
 
 
         Dictionary<string, List<Object>> IDDObjectLists = new Dictionary<string, List<Object>>();
@@ -742,7 +760,7 @@ namespace EnergyPlusLib
                 //Remove comments. 
                 string sline = line;
                 sline = Regex.Replace(line, @"(^\s*.*)(!.*)", @"$1");
-
+                sline = Regex.Replace(sline, @"(^!.*)", @"");
                 //check if line is a blank or whitespace only.
                 if (sline != "" || !Regex.IsMatch(sline, @"^\s*$"))
                 {
@@ -832,7 +850,7 @@ namespace EnergyPlusLib
 
             foreach (Command command in IDFCommands)
             {
-                tw.WriteLine(command.ToIDFStringTerse());
+                tw.WriteLine(command.ToIDFString());
             }
             tw.Close();
         }
@@ -853,44 +871,48 @@ namespace EnergyPlusLib
                 startmonth, startday, endmonth, endday)
                 ));
         }
+        public void ChangeAspectRatioXY(double X, double Y)
+        {
+            ///Remove Geometry Transform.
+            this.DeleteCommands("GeometryTransform");
+            this.IDFCommands.Add(
+                GetCommandFromTextString( String.Format( "GeometryTransform,XY,{0},{1}", X, Y))
+                );
+        }
+
         public bool ProcessEnergyPlusSimulation()
         {
-
+            //Get path of current idf file. 
             string idf_folder_path = Path.GetDirectoryName(this.sIDFFileName);
-            string folder_name = idf_folder_path + @"\test";
-            string lines = "[program]\r\ndir=" + sEnergyPlusRootFolder;
-            string file_name = folder_name + "\\in2.idf";
-            string ini_file_name = folder_name + "\\energy+.ini";
+            //Create new folder to run simulation in. 
+            string folder_name = idf_folder_path + @"\simrun\";
             if (System.IO.Directory.Exists(folder_name)) { System.IO.Directory.Delete(folder_name, true); }
-
             System.IO.Directory.CreateDirectory(folder_name);
+
+            //Save IDF file in memory to new folder. 
+            string file_name = folder_name + Path.GetFileName(this.sIDFFileName);
             this.SaveIDFFile(file_name);
 
-            System.IO.StreamWriter file = new System.IO.StreamWriter(ini_file_name);
-            file.WriteLine(lines);
-            file.Close();
-
+            //Save location of current folder and change dir to new folder. 
             string startdirectory = System.IO.Directory.GetCurrentDirectory();
             System.IO.Directory.SetCurrentDirectory(folder_name);
 
+            //Create new process 
             Process EPProcess = new Process();
             ProcessStartInfo EPStartInfo = new ProcessStartInfo();
-
             EPStartInfo.FileName = "CMD.exe ";
-
             EPStartInfo.RedirectStandardError = false;
-
             EPStartInfo.RedirectStandardInput = false;
             EPProcess.StartInfo.UseShellExecute = false;
             EPProcess.StartInfo.RedirectStandardOutput = true;
-
-
             EPStartInfo.UseShellExecute = false;
-            //Dont show a command window
+            //Show the command window
             EPStartInfo.CreateNoWindow = false;
 
-            EPStartInfo.Arguments = "/D /c " + sEnergyPlusRootFolder + "RunEPlus.bat in2 USA_CA_San.Francisco.Intl.AP.724940_TMY3";
-
+            //Set up E+ arguments. 
+            string filen = folder_name + Path.GetFileNameWithoutExtension(this.sIDFFileName);
+            string sWeatherfileNoExtention = Path.GetFileNameWithoutExtension(this.sWeatherFile);
+            EPStartInfo.Arguments = "/D /c " + sEnergyPlusRootFolder + "RunEPlus.bat " + filen + " " + sWeatherfileNoExtention;
             EPProcess.EnableRaisingEvents = true;
             EPProcess.StartInfo = EPStartInfo;
 
@@ -898,7 +920,7 @@ namespace EnergyPlusLib
             EPProcess.Start();
 
             //set the wait period for exiting the process
-            EPProcess.WaitForExit(1500000000); //or the wait time you want
+            EPProcess.WaitForExit(150000000); //Roughly 1.73 days. 
 
             int ExitCode = EPProcess.ExitCode;
             bool EPSuccessful = true;
@@ -913,6 +935,9 @@ namespace EnergyPlusLib
             //now clean up after ourselves
             EPProcess.Dispose();
             //EPProcess.StartInfo = null;
+
+            //Return to the start directory. 
+            System.IO.Directory.SetCurrentDirectory(startdirectory);
             return EPSuccessful;
         }
         #endregion
