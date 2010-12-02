@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.ComponentModel;
@@ -12,7 +13,7 @@ using System.Reflection;
 using System.Data.SQLite;
 
 /*To-Do
- * 1. Fix Construction.
+ * 1. 
  * 3. read in gbXMl geomtry. 
  */
 
@@ -515,7 +516,7 @@ namespace EnergyPlusLib
     }
 
     //IDF Support Classes. 
-    public class Argument
+    public class Argument:INotifyPropertyChanged
     {
         #region Properties
         public Field Field;
@@ -530,8 +531,10 @@ namespace EnergyPlusLib
             idd = IDDDataModel.GetInstance();
         }
         #endregion
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
-    public class Command
+    public class Command:INotifyPropertyChanged
     {
         #region Properties
         public Object Object;
@@ -711,14 +714,16 @@ namespace EnergyPlusLib
 
         }
         #endregion
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 
     //IDF DataModel. 
-    public class IDFDataModel
+    public class IDFDataModel:INotifyPropertyChanged
     {
         #region Properties
         public IDDDataModel idddata = IDDDataModel.GetInstance();
-        public IList<Command> IDFCommands;
+        public ObservableCollection<Command> IDFCommands;
 
         public string sEnergyPlusRootFolder;
         public string sIDFFileName;
@@ -726,12 +731,14 @@ namespace EnergyPlusLib
 
 
         Dictionary<string, List<Object>> IDDObjectLists = new Dictionary<string, List<Object>>();
+        Dictionary<string, List<Argument>> IDFObjectLists = new Dictionary<string, List<Argument>>();
+
         public IDDDataModel idd = IDDDataModel.GetInstance();
         #endregion
         #region Constructor
         public IDFDataModel()
         {
-            this.IDFCommands = new List<Command>();
+            this.IDFCommands = new ObservableCollection<Command>();
         }
         #endregion
         #region IDF Methods
@@ -873,7 +880,7 @@ namespace EnergyPlusLib
         }
         public void ChangeAspectRatioXY(double X, double Y)
         {
-            ///Remove Geometry Transform.
+            //Remove Geometry Transform if present. 
             this.DeleteCommands("GeometryTransform");
             this.IDFCommands.Add(
                 GetCommandFromTextString( String.Format( "GeometryTransform,XY,{0},{1}", X, Y))
@@ -941,6 +948,8 @@ namespace EnergyPlusLib
             return EPSuccessful;
         }
         #endregion
+
+        public event PropertyChangedEventHandler PropertyChanged;
     }
 }
 

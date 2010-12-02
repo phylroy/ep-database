@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Data;
+using System.Xml.Serialization;
 using EnergyPlusLib;
+using gbXMLLib;
 
 namespace EnergyPlus
 {
@@ -11,6 +13,8 @@ namespace EnergyPlus
     {
         static void Main(string[] args)
         {
+
+
             int processors = Environment.ProcessorCount;
             IDFDataModel idf = new IDFDataModel();
             //Set weather file.
@@ -21,13 +25,11 @@ namespace EnergyPlus
 
             //Tweak Building. 
             List<Command> BuildingSurfaces = idf.FindCommandsFromObjectName(@"FenestrationSurface:Detailed");
-            BuildingSurfaces.ForEach(delegate(Command s) { s.IsMuted = true; });
-            BuildingSurfaces.ForEach(delegate(Command s) { s.SetArgument(@"Surface Type","Wall"); });
+            BuildingSurfaces.ForEach(delegate(Command command) { command.IsMuted = true; });
+            BuildingSurfaces.ForEach(delegate(Command command) { command.SetArgument(@"Surface Type","Wall"); });
             //BuildingSurfaces.ForEach(delegate(Command s) { s.SetArgumentbyDataName(@"A2", "Floor"); });
             idf.ChangeSimulationPeriod(1, 1, 1, 31);
             idf.ChangeAspectRatioXY(1.0, 2.0);
-            idf.SaveIDFFile(@"C:\test\test.idf");
-
             idf.ProcessEnergyPlusSimulation();
         }
     }

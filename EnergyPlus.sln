@@ -3,12 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnergyPlus", "EnergyPlus\EnergyPlus.csproj", "{3F69FAD3-1483-468C-B531-5248BC7661A8}"
 	ProjectSection(ProjectDependencies) = postProject
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A} = {AA8AF931-D455-4696-8EA4-9B53D271F91A}
 		{654C9538-5233-4E92-A3EE-1E3685032C2E} = {654C9538-5233-4E92-A3EE-1E3685032C2E}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperEE4", "SuperEE4\SuperEE4.csproj", "{63308008-77DE-4860-97A9-1D792EE84470}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnergyPlusLib", "EnergyPlusLib\EnergyPlusLib.csproj", "{654C9538-5233-4E92-A3EE-1E3685032C2E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gbXMLLib", "gbXMLLib\gbXMLLib.csproj", "{AA8AF931-D455-4696-8EA4-9B53D271F91A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +53,16 @@ Global
 		{654C9538-5233-4E92-A3EE-1E3685032C2E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{654C9538-5233-4E92-A3EE-1E3685032C2E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{654C9538-5233-4E92-A3EE-1E3685032C2E}.Release|x86.ActiveCfg = Release|Any CPU
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{AA8AF931-D455-4696-8EA4-9B53D271F91A}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
