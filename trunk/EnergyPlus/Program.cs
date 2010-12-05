@@ -6,7 +6,8 @@ using System.Data;
 using System.Xml.Serialization;
 using EnergyPlusLib;
 using gbXMLLib;
-using EnergyPlusLib.DataModel.IDF;
+using EnergyPlusLib.DataAccess;
+using EnergyPlusLib.DataModel.IDF; 
 
 
 namespace EnergyPlus
@@ -18,7 +19,7 @@ namespace EnergyPlus
 
 
             int processors = Environment.ProcessorCount;
-            IDFDataModel idf = new IDFDataModel();
+             IDFDatabase idf = new IDFDatabase();
             //Set weather file.
             idf.sWeatherFile= @"C:\EnergyPlusV6-0-0\WeatherData\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw";
             idf.sEnergyPlusRootFolder = @"C:\EnergyPlusV6-0-0\"; 

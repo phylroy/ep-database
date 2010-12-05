@@ -80,14 +80,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataModel\IDD\IDDDataModel.cs" />
+    <Compile Include="DataAccess\Database.cs" />
     <Compile Include="DataModel\IDD\Field.cs" />
     <Compile Include="DataModel\IDD\Object.cs" />
     <Compile Include="DataModel\IDD\ObjectSwitch.cs" />
     <Compile Include="DataModel\IDD\FieldSwitch.cs" />
     <Compile Include="DataModel\IDF\Argument.cs" />
     <Compile Include="DataModel\IDF\Command.cs" />
-    <Compile Include="DataModel\IDF\IDFDataModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
