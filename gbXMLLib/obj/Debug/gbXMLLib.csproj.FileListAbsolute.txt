@@ -1,0 +1,5 @@
+C:\ep-database\gbXMLLib\bin\Debug\gbXMLLib.dll
+C:\ep-database\gbXMLLib\bin\Debug\gbXMLLib.pdb
+C:\ep-database\gbXMLLib\obj\Debug\ResolveAssemblyReference.cache
+C:\ep-database\gbXMLLib\obj\Debug\gbXMLLib.dll
+C:\ep-database\gbXMLLib\obj\Debug\gbXMLLib.pdb
