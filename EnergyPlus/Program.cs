@@ -27,7 +27,7 @@ namespace EnergyPlus
             idf.LoadIDFFile(@"C:\EnergyPlusV6-0-0\ExampleFiles\5ZoneGeometryTransform.idf");
 
             //Find all Zones. 
-            List<Command> Zones= idf.FindCommandsFromObjectName(@"Zone");
+            IList<Command> Zones= idf.FindCommandsFromObjectName(@"Zone");
 
             //Building
             //  Plant 
@@ -38,8 +38,8 @@ namespace EnergyPlus
             //Schedules
 
 
-            List<Command> BuildingSurfaces = idf.FindCommandsFromObjectName(@"FenestrationSurface:Detailed");
-            List<Command> Surfaces = idf.FindCommands(@"FenestrationSurface:Detailed", "Zone Name", "PLENUM-1");
+            List<Command> BuildingSurfaces = idf.FindCommandsFromObjectName(@"FenestrationSurface:Detailed").ToList<Command>();
+            List<Command> Surfaces = idf.FindCommands(@"FenestrationSurface:Detailed", "Zone Name", "PLENUM-1").ToList<Command>();
            
 
             BuildingSurfaces.ForEach(delegate(Command command) { command.IsMuted = true; });

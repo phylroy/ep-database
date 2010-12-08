@@ -5,7 +5,7 @@ using System.Text;
 using System.Collections.ObjectModel;
 using System.Linq;
 using EnergyPlusLib;
-
+using EnergyPlusLib.DataModel.IDF;
 namespace EPTreeTest.EPFullTreeView
 {
     class GroupViewModel

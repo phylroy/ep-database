@@ -16,7 +16,7 @@ namespace EnergyPlusLib.DataAccess
     {
         #region Properties
         public IDDDataModel idddata = IDDDataModel.GetInstance();
-        public ObservableCollection<Command> IDFCommands;
+        public IList<Command> IDFCommands;
         public string sEnergyPlusRootFolder;
         public string sIDFFileName;
         public string sWeatherFile;
@@ -65,16 +65,16 @@ namespace EnergyPlusLib.DataAccess
             this.sIDFFileName = sIDFFileName;
             IDFCommands.Clear();
             //Read file into string List. 
-            List<String> idfListString = File.ReadAllLines(this.sIDFFileName).ToList<string>();
+            IList<String> idfListString = File.ReadAllLines(this.sIDFFileName).ToList<string>();
 
             //find command strings and reformat. 
-            List<string> CommandStrings = CleanCommandStrings(idfListString);
+            IList<string> CommandStrings = CleanCommandStrings(idfListString);
             foreach (string commandstring in CommandStrings)
             {
                 IDFCommands.Add(GetCommandFromTextString(commandstring));
             }
         }
-        private List<string> CleanCommandStrings(List<String> idfListString)
+        private IList<string> CleanCommandStrings(IList<String> idfListString)
         {
             List<string> CommandStrings = new List<String>();
 
@@ -161,7 +161,7 @@ namespace EnergyPlusLib.DataAccess
 
             return new_command;
         }
-        public List<Command> FindCommandsFromObjectName(string ObjectName)
+        public IList<Command> FindCommandsFromObjectName(string ObjectName)
         {
 
             List<Command> commands = (from command in IDFCommands
@@ -181,7 +181,9 @@ namespace EnergyPlusLib.DataAccess
         }
         public void DeleteCommands(string sObjectName)
         {
-            FindCommandsFromObjectName(sObjectName).ForEach(delegate(Command cmd) { IDFCommands.Remove(cmd); });
+            foreach (Command cmd in FindCommandsFromObjectName(sObjectName))
+            { IDFCommands.Remove(cmd); }
+        
         }
         public void ChangeSimulationPeriod(int startmonth, int startday, int endmonth, int endday)
         {
@@ -204,7 +206,7 @@ namespace EnergyPlusLib.DataAccess
                 GetCommandFromTextString(String.Format("GeometryTransform,XY,{0},{1}", X, Y))
                 );
         }
-        public List<Command> FindAllCommandsOfObjectType(IDDObject object1)
+        public IList<Command> FindAllCommandsOfObjectType(IDDObject object1)
         {
             List<Command> objects = (
                     from command in this.IDFCommands
@@ -213,7 +215,7 @@ namespace EnergyPlusLib.DataAccess
             return objects;
         }
 
-        public List<Command> FindCommands(string ObjectName, string FieldName, string FieldValue)
+        public IList<Command> FindCommands(string ObjectName, string FieldName, string FieldValue)
         {
 
             List<Command> objects = (from surface in FindCommandsFromObjectName(ObjectName)
