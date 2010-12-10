@@ -18,11 +18,9 @@ namespace EnergyPlusLib.DataModel.IDD
         public Field(string DataName, int Order, IDDObject Object)
             : this()
         {
-
             this.DataName = DataName;
             this.Order = Order;
             this.Object = Object;
-
         }
 
         public Field()
@@ -104,16 +102,16 @@ namespace EnergyPlusLib.DataModel.IDD
         { return FindSwitchValue(@"\unitsBasedOnField"); }
 
         public string RangeMinimum()
-        { return FindSwitchValue(@"\minimum"); }
+        { return (FindSwitchValue(@"\minimum")); }
 
         public string RangeMaximum()
-        { return FindSwitchValue(@"\maximum"); }
+        { return (FindSwitchValue(@"\maximum")); }
 
         public string RangeGreaterThan()
-        { return FindSwitchValue(@"\minimum>"); }
+        { return (FindSwitchValue(@"\minimum>")); }
 
         public string RangeLessThan()
-        { return FindSwitchValue(@"\maximum<"); }
+        { return (FindSwitchValue(@"\maximum<")); }
 
         public string Depreciated()
         { return FindSwitchValue(@"\deprecated"); }

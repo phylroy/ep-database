@@ -15,18 +15,13 @@ namespace EnergyPlusLib.DataAccess
     public class IDFDatabase
     {
         #region Properties
-        public IDDDataModel idddata = IDDDataModel.GetInstance();
+        public IDDDataBase idddata = IDDDataBase.GetInstance();
         public IList<Command> IDFCommands;
         public string sEnergyPlusRootFolder;
         public string sIDFFileName;
         public string sWeatherFile;
-
-
+        //Objectlist methods. 
         public Dictionary<string, List<Command>> IDFObjectLists = new Dictionary<string, List<Command>>();
-
-
-
-
         public void UpdateAllObjectLists()
         {
             foreach (KeyValuePair<string, List<IDDObject>> IDDObjectList in idddata.IDDObjectLists)
@@ -51,7 +46,24 @@ namespace EnergyPlusLib.DataAccess
             }
             IDFObjectLists[objectlistname] = CommandList;
         }
-        public IDDDataModel idd = IDDDataModel.GetInstance();
+        public List<string> GetObjectListCommandNames(string objectlistname)
+        {
+            List<string> ObjectListNames = new List<string>();
+            //todo some output varible object lists are only present after a run. these start with a "autoRDD" prefix. 
+            if (IDFObjectLists.ContainsKey(objectlistname))
+            {
+                List<Command> Commands = this.IDFObjectLists[objectlistname];
+                
+                foreach (Command command in Commands)
+                {
+                    ObjectListNames.Add(command.GetName());
+                }
+            }
+            return ObjectListNames;
+        }
+
+
+        public IDDDataBase idd = IDDDataBase.GetInstance();
         #endregion
         #region Constructor
         public IDFDatabase()
@@ -128,7 +140,7 @@ namespace EnergyPlusLib.DataAccess
 
             //find object.
             IDDObject object_type = idd.GetObject(items[0].Trim());
-            new_command = new Command(object_type);
+            new_command = new Command(this,object_type);
             //remove name from List.
             items.RemoveAt(0);
 
@@ -152,7 +164,7 @@ namespace EnergyPlusLib.DataAccess
                     List<Argument> ArgumentList = new List<Argument>();
                     for (int fieldcounter = 0; fieldcounter < object_type.NumberOfExtensibleFields; fieldcounter++)
                     {
-                        ArgumentList.Add(new Argument(object_type.ExtensibleFields[fieldcounter], items[itemcounter + fieldcounter]));
+                        ArgumentList.Add(new Argument(this, object_type.ExtensibleFields[fieldcounter], items[itemcounter + fieldcounter]));
 
                     }
                     new_command.ExtensibleSetArguments.Add(ArgumentList);
@@ -289,12 +301,12 @@ namespace EnergyPlusLib.DataAccess
 
     }
     //IDD DataModel.
-    public class IDDDataModel
+    public class IDDDataBase
     {
         #region Singleton Contructor
-        private static IDDDataModel instance = new IDDDataModel();
-        private IDDDataModel() { }
-        public static IDDDataModel GetInstance()
+        private static IDDDataBase instance = new IDDDataBase();
+        private IDDDataBase() { }
+        public static IDDDataBase GetInstance()
         {
             return instance;
         }
