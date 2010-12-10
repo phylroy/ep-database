@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using EnergyPlusLib.DataModel.IDD;
+using EnergyPlusLib.DataAccess;
 
 namespace EnergyPlusLib.DataModel.IDF
 {
@@ -14,44 +15,38 @@ namespace EnergyPlusLib.DataModel.IDF
         public IList<Argument> RegularArguments { get; set; }
         public IList<IList<Argument>> ExtensibleSetArguments { get; set; }
         public bool IsMuted;
+        public IDFDatabase idf;
 
         #endregion
         #region Constructors
-        public Command(IDDObject Object)
-            : this()
+        public Command(IDFDatabase idf,IDDObject Object)
+            : this(idf)
         {
             this.Object = Object;
+            this.idf = idf;
             foreach (Field field in Object.RegularFields)
             {
-                Argument arg = new Argument(field, field.Default());
+                Argument arg = new Argument(this.idf, field, field.Default());
                 this.RegularArguments.Add(arg);
             }
 
             List<Argument> ExtensibleSet = new List<Argument>();
             foreach (Field field in this.Object.ExtensibleFields)
             {
-                Argument arg = new Argument(field, field.Default());
+                Argument arg = new Argument(this.idf, field, field.Default());
                 ExtensibleSet.Add(arg);
             }
 
             ExtensibleSetArguments.Add(ExtensibleSet);
         }
-        private Command()
+        private Command(IDFDatabase idf)
         {
             this.RegularArguments = new List<Argument>();
             this.ExtensibleSetArguments = new List<IList<Argument>>();
-
             this.IsMuted = false;
         }
-        public Command(IDDObject Object, params Argument[] Arguments)
-            : this(Object)
-        {
-            //stub
-        }
-        public Command(string sCommand)
-        {
-            //stub
-        }
+
+
         #endregion
         #region General Methods
 
@@ -168,7 +163,10 @@ namespace EnergyPlusLib.DataModel.IDF
             return tempstring1;
         }
 
-
+        public string GetName()
+        {
+            return this.GetArgument(@"Name").Value;
+        }
 
 
         public Argument GetArgument(String fieldname)
