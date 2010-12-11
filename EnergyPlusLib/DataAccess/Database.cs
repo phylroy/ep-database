@@ -85,6 +85,7 @@ namespace EnergyPlusLib.DataAccess
             {
                 IDFCommands.Add(GetCommandFromTextString(commandstring));
             }
+            UpdateAllObjectLists();
         }
         private IList<string> CleanCommandStrings(IList<String> idfListString)
         {
@@ -234,6 +235,21 @@ namespace EnergyPlusLib.DataAccess
                                      where surface.DoesArgumentExist(FieldName) && surface.GetArgument(FieldName).Value == FieldValue
                                      select surface).ToList<Command>();
             return objects;
+        }
+
+        public IList<Command> FindCommandsWithRangeErrors()
+        {
+            this.UpdateAllObjectLists();
+            IList<Command> Commands = new List<Command>();
+            foreach (Command command in this.IDFCommands)
+            {
+                if (command.CheckValues() == true)
+                {
+                    Commands.Add(command);
+                }
+                
+            }
+            return Commands;
         }
 
         public bool ProcessEnergyPlusSimulation()

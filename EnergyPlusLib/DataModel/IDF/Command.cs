@@ -15,6 +15,7 @@ namespace EnergyPlusLib.DataModel.IDF
         public IList<Argument> RegularArguments { get; set; }
         public IList<IList<Argument>> ExtensibleSetArguments { get; set; }
         public bool IsMuted;
+        public bool HasError;
         public IDFDatabase idf;
 
         #endregion
@@ -50,6 +51,16 @@ namespace EnergyPlusLib.DataModel.IDF
         #endregion
         #region General Methods
 
+
+        public bool CheckValues()
+        {
+            this.HasError = false;
+            foreach (Argument arg in FlattenedArgumentList())
+            {
+                if (arg.RangeCheckValue() == true) { this.HasError = true; }
+            }
+            return this.HasError;
+        }
 
 
         public IList<Argument> FlattenedArgumentList()
@@ -106,17 +117,31 @@ namespace EnergyPlusLib.DataModel.IDF
             {
 
                 String units = argument.Field.Units();
+                
+                //create unit string.
                 if (units != null)
                 {
                     units = " {" + units + "}";
                 }
+
+                string sRangeError = "";
+                if (true == argument.HasError)
+                {
+                    sRangeError = " -RANGE ERROR- ";
+                }
+
+
+
+                //Create error string. 
+
+
                 if (FullList.Last() == argument)
                 {
-                    tempstring1 += String.Format(Prefix + "    {0,-50} !-{1,-50} \r\n", argument.Value + ";", argument.Field.Name() + units);
+                    tempstring1 += String.Format(Prefix + "    {0,-50} !-{1,-50} \r\n", argument.Value + ";", argument.Field.Name() + units + sRangeError);
                 }
                 else
                 {
-                    tempstring1 += String.Format(Prefix + "    {0,-50} !-{1,-50} \r\n", argument.Value + ",", argument.Field.Name() + units);
+                    tempstring1 += String.Format(Prefix + "    {0,-50} !-{1,-50} \r\n", argument.Value + ",", argument.Field.Name() + units + sRangeError);
                 }
 
             }
