@@ -23,23 +23,12 @@ namespace EnergyPlus
             //Set weather file.
             idf.sWeatherFile= @"C:\EnergyPlusV6-0-0\WeatherData\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw";
             idf.sEnergyPlusRootFolder = @"C:\EnergyPlusV6-0-0\"; 
-            idf.idd.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
-            idf.LoadIDFFile(@"C:\EnergyPlusV6-0-0\ExampleFiles\HospitalLowEnergy.idf");
+            idf.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
+            idf.LoadIDFFile(@"C:\EnergyPlusV6-0-0\ExampleFiles\5ZoneBoilerOutsideAirReset.idf");
 
             //Find all Zones. 
-            IList<Command> Zones= idf.FindCommandsFromObjectName(@"Zone");
-
-            //Building
-            //  Plant 
-            //      AHU
-            //      Zones
-            //      Loads.
-            //Constructions
-            //Schedules
-
-
-            List<Command> BuildingSurfaces = idf.FindCommandsFromObjectName(@"FenestrationSurface:Detailed").ToList<Command>();
-            List<Command> Surfaces = idf.FindCommands(@"FenestrationSurface:Detailed", "Zone Name", "PLENUM-1").ToList<Command>();
+            //List<Command> Zones = idf.FindCommandsFromObjectName(@"Zone").ToList<Command>();
+            //List<Command> Surfaces = idf.FindCommands(@"FenestrationSurface:Detailed", "Zone Name", "PLENUM-1").ToList<Command>();
             List<Command> CommandError = idf.FindCommandsWithRangeErrors().ToList<Command>();
 
             //BuildingSurfaces.ForEach(delegate(Command command) { command.IsMuted = true; });

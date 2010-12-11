@@ -15,8 +15,8 @@ namespace EnergyPlusLib.DataAccess
     public class IDFDatabase
     {
         #region Properties
-        public IDDDataBase idddata = IDDDataBase.GetInstance();
-        public IList<Command> IDFCommands;
+        private IDDDataBase idd = IDDDataBase.GetInstance();
+        private IList<Command> IDFCommands;
         public string sEnergyPlusRootFolder;
         public string sIDFFileName;
         public string sWeatherFile;
@@ -24,19 +24,38 @@ namespace EnergyPlusLib.DataAccess
         public Dictionary<string, List<Argument>> IDFObjectLists = new Dictionary<string, List<Argument>>();
 
 
+        public void LoadIDDFile(string filename)
+
+        {
+           this.idd.LoadIDDFile(filename);
+        }
+
         public void UpdateAllObjectLists()
         {
-            foreach (KeyValuePair<string, List<Field>> IDDObjectList in idddata.IDDObjectLists)
+            IDFObjectLists = new Dictionary<string, List<Argument>>();
+            foreach (Command command in this.IDFCommands)
             {
-                List<Argument> CommandList = new List<Argument>();
-                //find all commands that are of this object type. 
-                foreach (Field field in IDDObjectList.Value)
+                foreach (Argument argument in command.FlattenedArgumentList())
                 {
-                    CommandList.AddRange(this.FindAllArgumentsOfFieldType(field));
+                    foreach (string reference in argument.Field.References())
+                    {
+                        //using TrygetValue because it is faster. 
+                        List<Argument> value1 = new List<Argument>();
+                        if (false == IDFObjectLists.TryGetValue(reference, out value1) )
+                        {
+                            value1 = IDFObjectLists[reference] = new List<Argument>();
+                        }
+                        
+                        if (false == value1.Contains(argument))
+                        {
+                            value1.Add(argument);
+                        }
+                    }
                 }
-                IDFObjectLists[IDDObjectList.Key] = CommandList;
             }
         }
+
+
 
 
 
@@ -45,12 +64,15 @@ namespace EnergyPlusLib.DataAccess
 
             List<Argument> CommandList = new List<Argument>();
             //find all commands that are of this object type. 
-            foreach (Field field in idddata.IDDObjectLists[objectlistname])
+            foreach (Field field in idd.IDDObjectLists[objectlistname])
             {
                 CommandList.AddRange(this.FindAllArgumentsOfFieldType(field));
             }
             IDFObjectLists[objectlistname] = CommandList;
         }
+
+
+
         public List<string> GetFieldListArgumentNames(string objectlistname)
         {
             List<string> ObjectListNames = new List<string>();
@@ -68,7 +90,7 @@ namespace EnergyPlusLib.DataAccess
         }
 
 
-        public IDDDataBase idd = IDDDataBase.GetInstance();
+
         #endregion
         #region Constructor
         public IDFDatabase()
@@ -90,7 +112,6 @@ namespace EnergyPlusLib.DataAccess
             {
                 IDFCommands.Add(GetCommandFromTextString(commandstring));
             }
-            UpdateAllObjectLists();
         }
         private IList<string> CleanCommandStrings(IList<String> idfListString)
         {
@@ -200,9 +221,27 @@ namespace EnergyPlusLib.DataAccess
         public void DeleteCommands(string sObjectName)
         {
             foreach (Command cmd in FindCommandsFromObjectName(sObjectName))
-            { IDFCommands.Remove(cmd); }
-        
+            { this.IDFCommands.Remove(cmd);}
+            this.UpdateAllObjectLists();
         }
+
+        public void DeleteCommands(IList<Command> Commands)
+        {
+
+            foreach (Command cmd in Commands)
+            { this.IDFCommands.Remove(cmd);}
+            this.UpdateAllObjectLists();
+        }
+
+
+        //This should be the only way a command gets deleted.
+        public void DeleteCommand(Command command)
+        {
+            if (this.IDFCommands.Contains(command)) 
+            { this.IDFCommands.Remove(command); };
+            this.UpdateAllObjectLists();
+        }
+
         public void ChangeSimulationPeriod(int startmonth, int startday, int endmonth, int endday)
         {
             //removes any exisiting entries of simulation control or Runperiod. 
