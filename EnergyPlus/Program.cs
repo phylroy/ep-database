@@ -45,7 +45,7 @@ namespace EnergyPlus
             //BuildingSurfaces.ForEach(delegate(Command command) { command.IsMuted = true; });
             //BuildingSurfaces.ForEach(delegate(Command command) { command.SetArgument(@"Surface Type","Wall"); });
             //BuildingSurfaces.ForEach(delegate(Command s) { s.SetArgumentbyDataName(@"A2", "Floor"); });
-            idf.ChangeSimulationPeriod(1, 1, 12, 31);
+            //idf.ChangeSimulationPeriod(1, 1, 12, 31);
             //idf.ChangeAspectRatioXY(1.0, 2.0);
             idf.ProcessEnergyPlusSimulation();
         }

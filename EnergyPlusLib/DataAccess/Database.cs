@@ -502,7 +502,8 @@ namespace EnergyPlusLib.DataAccess
                             iExtensible--;
                         }
                     }
-
+                    else if ((current_field != null && (bBeginExtensible == true && iExtensible < 0) && (switch_match.Success && !group_match.Success)))
+                    {iExtensible--;}
                 }
             }
             //Sort fields in all objects. 
