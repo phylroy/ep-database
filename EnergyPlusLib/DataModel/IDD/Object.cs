@@ -96,6 +96,16 @@ namespace EnergyPlusLib.DataModel.IDD
                          select Switch.Value;
             return result.ToList<String>();
         }
+
+        public IList<Field> FlattenedFieldList()
+        {
+            IList<Field> FullFields = new List<Field>();
+
+
+            foreach (Field item in this.RegularFields) FullFields.Add(item);
+            foreach (Field item in this.ExtensibleFields) FullFields.Add(item);
+            return FullFields;
+        }
         #endregion
         #region IDD Switch Methods
         public bool IsSwitchPresent(string switch_name)
