@@ -63,31 +63,41 @@ namespace EnergyPlusLib.DataModel.IDF
 
                     case "integer":
 
-                        int ivalue = Convert.ToInt32(Convert.ToDecimal(value));
+
                         //Convert String to int. 
-                        if (value == null || value == "") { value = "0"; }
-                        if (
-                                (Field.RangeGreaterThan() == null || (Field.RangeGreaterThan() != null && ivalue > Convert.ToInt32(Field.RangeGreaterThan()))) &&
-                                (Field.RangeLessThan() == null || (Field.RangeLessThan() != null && ivalue < Convert.ToInt32(Field.RangeLessThan()))) &&
-                                (Field.RangeMaximum() == null || (Field.RangeMaximum() != null && ivalue <= Convert.ToInt32(Field.RangeMaximum()))) &&
-                                (Field.RangeMinimum() == null || (Field.RangeMinimum() != null && ivalue >= Convert.ToInt32(Field.RangeMinimum()))) 
-                            
-                            )
+
+                        try
                         {
-                            this.value = ivalue.ToString();
-                            this.HasError = false;
+
+                            int ivalue = Convert.ToInt32(value);
+
+                            if (
+                                    (Field.RangeGreaterThan() == null || (Field.RangeGreaterThan() != null && ivalue > Convert.ToInt32(Field.RangeGreaterThan()))) &&
+                                    (Field.RangeLessThan() == null || (Field.RangeLessThan() != null && ivalue < Convert.ToInt32(Field.RangeLessThan()))) &&
+                                    (Field.RangeMaximum() == null || (Field.RangeMaximum() != null && ivalue <= Convert.ToInt32(Field.RangeMaximum()))) &&
+                                    (Field.RangeMinimum() == null || (Field.RangeMinimum() != null && ivalue >= Convert.ToInt32(Field.RangeMinimum())))
+
+                                )
+                            {
+                                this.value = ivalue.ToString();
+                                this.HasError = false;
+                            }
+                            else
+                            {
+                                this.HasError = true;
+                            }
                         }
-                        else
+                        catch (System.Exception)
                         {
+                            //string value is not convertable to a double. 
                             this.HasError = true;
-                        }
+                        } 
                         break;
 
                     case "real":
-                        if (value == null || value == "") { value = "0"; }
 
-                        bool isAutoable = (this.Field.IsAutoSizable() && value.ToLower() == "autosize") 
-                                            || ( this.Field.IsAutoCalculable() && value.ToLower() == "autocalculate");
+                        bool isAutoable = (value != null && this.Field.IsAutoSizable() && value.ToLower() == "autosize")
+                                            || (value != null &&  this.Field.IsAutoCalculable() && value.ToLower() == "autocalculate");
 
                         //check if autocalc or autosize apparently there are bugs in E+ that allow Autosiza and AutoCalc to be use interchangably. 
                         if (isAutoable)
@@ -120,7 +130,8 @@ namespace EnergyPlusLib.DataModel.IDF
 
 
                             }
-                            catch (System.FormatException)
+
+                            catch (System.Exception)
                             { 
                                 //string value is not convertable to a double. 
                                 this.HasError = true;
