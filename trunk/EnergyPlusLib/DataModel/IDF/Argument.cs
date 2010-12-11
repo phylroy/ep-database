@@ -142,7 +142,7 @@ namespace EnergyPlusLib.DataModel.IDF
             switch (this.FieldType())
             {   
                 case "object-list":
-                    names = idf.GetObjectListCommandNames(this.Field.ObjectList());
+                    names = idf.GetFieldListArgumentNames(this.Field.ObjectList());
                     break;
                 case "choice":
                     names = Field.Keys().ToList<string>();

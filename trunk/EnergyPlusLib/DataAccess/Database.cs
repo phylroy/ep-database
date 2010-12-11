@@ -21,42 +21,47 @@ namespace EnergyPlusLib.DataAccess
         public string sIDFFileName;
         public string sWeatherFile;
         //Objectlist methods. 
-        public Dictionary<string, List<Command>> IDFObjectLists = new Dictionary<string, List<Command>>();
+        public Dictionary<string, List<Argument>> IDFObjectLists = new Dictionary<string, List<Argument>>();
+
+
         public void UpdateAllObjectLists()
         {
-            foreach (KeyValuePair<string, List<IDDObject>> IDDObjectList in idddata.IDDObjectLists)
+            foreach (KeyValuePair<string, List<Field>> IDDObjectList in idddata.IDDObjectLists)
             {
-                List<Command> CommandList = new List<Command>();
+                List<Argument> CommandList = new List<Argument>();
                 //find all commands that are of this object type. 
-                foreach (IDDObject object1 in IDDObjectList.Value)
+                foreach (Field field in IDDObjectList.Value)
                 {
-                    CommandList.AddRange(this.FindAllCommandsOfObjectType(object1));
+                    CommandList.AddRange(this.FindAllArgumentsOfFieldType(field));
                 }
                 IDFObjectLists[IDDObjectList.Key] = CommandList;
             }
         }
+
+
+
         public void UpdateObjectList(string objectlistname)
         {
 
-            List<Command> CommandList = new List<Command>();
+            List<Argument> CommandList = new List<Argument>();
             //find all commands that are of this object type. 
-            foreach (IDDObject object1 in idddata.IDDObjectLists["objectlistname"])
+            foreach (Field field in idddata.IDDObjectLists[objectlistname])
             {
-                CommandList.AddRange(this.FindAllCommandsOfObjectType(object1));
+                CommandList.AddRange(this.FindAllArgumentsOfFieldType(field));
             }
             IDFObjectLists[objectlistname] = CommandList;
         }
-        public List<string> GetObjectListCommandNames(string objectlistname)
+        public List<string> GetFieldListArgumentNames(string objectlistname)
         {
             List<string> ObjectListNames = new List<string>();
             //todo some output varible object lists are only present after a run. these start with a "autoRDD" prefix. 
             if (IDFObjectLists.ContainsKey(objectlistname))
             {
-                List<Command> Commands = this.IDFObjectLists[objectlistname];
+                List<Argument> Arguments = this.IDFObjectLists[objectlistname];
                 
-                foreach (Command command in Commands)
+                foreach (Argument argument in Arguments)
                 {
-                    ObjectListNames.Add(command.GetName());
+                    ObjectListNames.Add( argument.Value );
                 }
             }
             return ObjectListNames;
@@ -228,6 +233,18 @@ namespace EnergyPlusLib.DataAccess
             return objects;
         }
 
+
+        public IList<Argument> FindAllArgumentsOfFieldType(Field field1)
+        {
+            List<Argument> args = (
+                    from command in this.IDFCommands
+                    from argument in command.FlattenedArgumentList()
+                    where argument.Field == field1
+                    select argument).Distinct().ToList<Argument>();
+            return args.ToList<Argument>();
+        }
+
+
         public IList<Command> FindCommands(string ObjectName, string FieldName, string FieldValue)
         {
 
@@ -329,7 +346,7 @@ namespace EnergyPlusLib.DataAccess
         #endregion
         #region Properties
         public IList<IDDObject> IDDObjects;
-        public Dictionary<string, List<IDDObject>> IDDObjectLists = new Dictionary<string, List<IDDObject>>();
+        public Dictionary<string, List<Field>> IDDObjectLists = new Dictionary<string, List<Field>>();
         #endregion
         #region IDD Methods
         public List<Field> GetObjectListReferences(String Reference)
@@ -342,16 +359,16 @@ namespace EnergyPlusLib.DataAccess
                      select field1).Distinct();
             return q.ToList<Field>();
         }
-        public Dictionary<string, List<IDDObject>> GetObjectList()
+        public Dictionary<string, List<Field>> GetObjectList()
         {
 
             var q = from object1 in IDDObjects.AsEnumerable()
-                    from field1 in object1.RegularFields
+                    from field1 in object1.FlattenedFieldList()
                     from fieldswitch in field1.Switches
                     where fieldswitch.Name == @"\reference"
                     select new
                     {
-                        obj = object1,
+                        fld = field1,
                         val = fieldswitch.Value,
                     };
             q.Distinct();
@@ -359,10 +376,10 @@ namespace EnergyPlusLib.DataAccess
             {
                 if (!IDDObjectLists.ContainsKey(x.val))
                 {
-                    List<IDDObject> objectlist = new List<IDDObject>();
+                    List<Field> objectlist = new List<Field>();
                     IDDObjectLists.Add(x.val, objectlist);
                 }
-                IDDObjectLists[x.val].Add(x.obj);
+                IDDObjectLists[x.val].Add(x.fld);
             }
             return IDDObjectLists;
         }
@@ -457,6 +474,8 @@ namespace EnergyPlusLib.DataAccess
 
                         if (bBeginExtensible == true) iExtensible--;
                     }
+                    else if (field_match.Success && (bBeginExtensible == true && iExtensible <= 0))
+                    { iExtensible--; }
 
                     //Search for a swtich match. 
                     Match switch_match = switch_regex.Match(newline);
@@ -502,8 +521,7 @@ namespace EnergyPlusLib.DataAccess
                             iExtensible--;
                         }
                     }
-                    else if ((current_field != null && (bBeginExtensible == true && iExtensible < 0) && (switch_match.Success && !group_match.Success)))
-                    {iExtensible--;}
+
                 }
             }
             //Sort fields in all objects. 
