@@ -19,6 +19,23 @@ namespace EnergyPlusLib.DataModel.IDF
             {
                 this.value = value;
                 RangeCheckValue(value);
+
+                foreach (string reference in this.Field.References())
+                {
+                    //using TrygetValue because it is faster. 
+                    List<Argument> value1 = new List<Argument>();
+                    if (false == idf.IDFObjectLists.TryGetValue(reference, out value1))
+                    {
+                        value1 = idf.IDFObjectLists[reference] = new List<Argument>();
+                    }
+
+                    if (false == value1.Contains(this))
+                    {
+                        value1.Add(this);
+                    }
+                }
+
+
             }
 
             get{ return this.value; } 
@@ -68,27 +85,46 @@ namespace EnergyPlusLib.DataModel.IDF
 
                     case "real":
                         if (value == null || value == "") { value = "0"; }
+
+                        bool isAutoable = (this.Field.IsAutoSizable() && value.ToLower() == "autosize") 
+                                            || ( this.Field.IsAutoCalculable() && value.ToLower() == "autocalculate");
+
                         //check if autocalc or autosize apparently there are bugs in E+ that allow Autosiza and AutoCalc to be use interchangably. 
-                        if ((value.ToLower() == "autosize" || value.ToLower() == "autocalculate") && (this.Field.IsAutoSizable()
-                             || this.Field.IsAutoCalculable()) )
+                        if (isAutoable)
                         { this.HasError = false; }
                         else
                         {
+                            try
+                            {
 
-                            //Convert String to double. 
-                            if (
-                                (Field.RangeGreaterThan() == null || (Field.RangeGreaterThan() != null && Convert.ToDouble(value) > Convert.ToDouble(Field.RangeGreaterThan() ) )) &&
-                                (Field.RangeLessThan() ==null || ( Field.RangeLessThan() != null && Convert.ToDouble(value) < Convert.ToDouble(Field.RangeLessThan())) ) &&
-                                (Field.RangeMaximum() == null || (Field.RangeMaximum() != null && Convert.ToDouble(value) <= Convert.ToDouble(Field.RangeMaximum())) ) &&
-                                (Field.RangeMinimum() == null || (Field.RangeMinimum() != null && Convert.ToDouble(value) >= Convert.ToDouble(Field.RangeMinimum()))) 
-                                )
-                            {
-                                this.HasError = false;
+                                double dvalue = Convert.ToDouble(value);
+
+
+                                //Convert String to double. 
+                                if (
+                                    (Field.RangeGreaterThan() == null || (Field.RangeGreaterThan() != null && Convert.ToDouble(value) > Convert.ToDouble(Field.RangeGreaterThan()))) &&
+                                    (Field.RangeLessThan() == null || (Field.RangeLessThan() != null && Convert.ToDouble(value) < Convert.ToDouble(Field.RangeLessThan()))) &&
+                                    (Field.RangeMaximum() == null || (Field.RangeMaximum() != null && Convert.ToDouble(value) <= Convert.ToDouble(Field.RangeMaximum()))) &&
+                                    (Field.RangeMinimum() == null || (Field.RangeMinimum() != null && Convert.ToDouble(value) >= Convert.ToDouble(Field.RangeMinimum())))
+                                    )
+                                {
+                                    this.HasError = false;
+                                }
+                                else
+                                {
+                                    this.HasError = true;
+                                }
+
+
+
+
+
                             }
-                            else
-                            {
+                            catch (System.FormatException)
+                            { 
+                                //string value is not convertable to a double. 
                                 this.HasError = true;
-                            }
+                            } 
                         }
                         this.value = value;
                         break;

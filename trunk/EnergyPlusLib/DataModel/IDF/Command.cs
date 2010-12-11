@@ -74,10 +74,7 @@ namespace EnergyPlusLib.DataModel.IDF
             foreach (Argument item in ExtArgs) FullArgs.Add(item);
             return FullArgs;
         }
-        public void AddArgument(Argument Argument)
-        {
-            //stub
-        }
+
         public String ToIDFString()
         {
             string Prefix = "";
