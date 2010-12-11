@@ -25,17 +25,33 @@ namespace EnergyPlusLib.DataModel.IDF
         {
             this.Object = Object;
             this.idf = idf;
+            int fieldcounter = 0;
+            string value =null;
             foreach (Field field in Object.RegularFields)
             {
-                Argument arg = new Argument(this.idf, field, field.Default());
+                
+                //If required Field and within minimum field set default. Otherwise keep string empty. 
+                if (field.IsRequiredField() && fieldcounter < Convert.ToInt32(Object.MinimumFields()) )
+                { value = field.Default(); }
+                else
+                { value = null;}
+
+                Argument arg = new Argument(this.idf, field, value);
                 this.RegularArguments.Add(arg);
+                fieldcounter++;
             }
 
             List<Argument> ExtensibleSet = new List<Argument>();
             foreach (Field field in this.Object.ExtensibleFields)
             {
+                //If required Field and within minimum field set default. Otherwise keep string empty. 
+                if (field.IsRequiredField() && fieldcounter < Convert.ToInt32(Object.MinimumFields()))
+                { value = field.Default(); }
+                else
+                { value = null; }
                 Argument arg = new Argument(this.idf, field, field.Default());
                 ExtensibleSet.Add(arg);
+                fieldcounter++;
             }
 
             ExtensibleSetArguments.Add(ExtensibleSet);
@@ -110,8 +126,25 @@ namespace EnergyPlusLib.DataModel.IDF
                             select arg).ToList<Argument>();
             }
 
+            int argumentcounter = 0;
             foreach (Argument argument in FullList)
             {
+                
+                //check to see if rest of arguments are either blank or null. 
+                bool restareblank = true;
+                for (int counter = argumentcounter+1; counter < FullList.Count(); counter++)
+                {
+                    if ((FullList[counter].Value != null && FullList[counter].Value != ""))
+                    {
+                        restareblank = false;
+                        break;
+
+                    }
+
+                }
+
+                
+
 
                 String units = argument.Field.Units();
                 
@@ -128,8 +161,13 @@ namespace EnergyPlusLib.DataModel.IDF
                 }
 
 
-
-                //Create error string. 
+                if (this.Object.MinimumFields() != null 
+                    && restareblank
+                    && argumentcounter == (Convert.ToInt32(this.Object.MinimumFields()) - 1))                
+                {
+                    tempstring1 += String.Format(Prefix + "    {0,-50} !-{1,-50} \r\n", argument.Value + ";", argument.Field.Name() + units + sRangeError);
+                    break;
+                }
 
 
                 if (FullList.Last() == argument)
@@ -140,7 +178,7 @@ namespace EnergyPlusLib.DataModel.IDF
                 {
                     tempstring1 += String.Format(Prefix + "    {0,-50} !-{1,-50} \r\n", argument.Value + ",", argument.Field.Name() + units + sRangeError);
                 }
-
+                argumentcounter++;
             }
             return tempstring1;
         }
