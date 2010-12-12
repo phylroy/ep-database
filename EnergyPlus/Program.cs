@@ -25,8 +25,8 @@ namespace EnergyPlus
             {
                 IDFDatabase idf = new IDFDatabase();
 
-                idf.sWeatherFile = @"C:\EnergyPlusV6-0-0\WeatherData\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw";
-                idf.sEnergyPlusRootFolder = @"C:\EnergyPlusV6-0-0\";
+                idf.WeatherFilePath = @"C:\EnergyPlusV6-0-0\WeatherData\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw";
+                idf.EnergyPlusRootFolder = @"C:\EnergyPlusV6-0-0\";
                 idf.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
                 idf.LoadIDFFile(fi.FullName);
                 List<IDFCommand> CommandError = idf.FindCommandsWithRangeErrors().ToList<IDFCommand>();

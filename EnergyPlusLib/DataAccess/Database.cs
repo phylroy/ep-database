@@ -12,24 +12,50 @@ using System.Diagnostics;
 
 namespace EnergyPlusLib.DataAccess
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class IDFDatabase
     {
         #region Properties
+        /// <summary>
+        /// idd provides access to the idd class singleton.
+        /// </summary>
         private IDDDataBase idd = IDDDataBase.GetInstance();
+        /// <summary>
+        /// List container containing all the Commands in the Building. 
+        /// </summary>
         private IList<IDFCommand> IDFCommands;
-        public string sEnergyPlusRootFolder;
-        public string sIDFFileName;
-        public string sWeatherFile;
-        //Objectlist methods. 
+        /// <summary>
+        /// Path to the energy plus root folder. "c:\energyplus6.0\" for example. 
+        /// </summary>
+        public string EnergyPlusRootFolder;
+        /// <summary>
+        ///  The current IDF file name that was last loaded from or saved to. 
+        /// </summary>
+        public string CurrentIDFFilePath;
+        /// <summary>
+        /// The full path of the weather file used for the simulation. 
+        /// </summary>
+        public string WeatherFilePath;
+        /// <summary>
+        /// This Dictionary contains all the arguments referenced by the object lists names.  
+        /// </summary>
         public Dictionary<string, List<IDFArgument>> IDFObjectLists = new Dictionary<string, List<IDFArgument>>();
-
-
+        /// <summary>
+        /// This method calls the private method from the IDDDatabase class and creates, or overwrites that data in the singleton. 
+        /// </summary>
+        /// <param name="filename"></param>
         public void LoadIDDFile(string filename)
 
         {
            this.idd.LoadIDDFile(filename);
         }
-
+        /// <summary>
+        /// This method parses all the commands and arguments in the building model and creates the 
+        /// object-list -> arguments relationship within the IDFObjectLists dictionary. This is used 
+        /// for range chacking and possibly for combox box control in a gui application. 
+        /// </summary>
         public void UpdateAllObjectLists()
         {
             IDFObjectLists = new Dictionary<string, List<IDFArgument>>();
@@ -54,25 +80,12 @@ namespace EnergyPlusLib.DataAccess
                 }
             }
         }
-
-
-
-
-
-        public void UpdateObjectList(string objectlistname)
-        {
-
-            List<IDFArgument> CommandList = new List<IDFArgument>();
-            //find all commands that are of this object type. 
-            foreach (IDDField field in idd.IDDObjectLists[objectlistname])
-            {
-                CommandList.AddRange(this.FindAllArgumentsOfFieldType(field));
-            }
-            IDFObjectLists[objectlistname] = CommandList;
-        }
-
-
-
+        /// <summary>
+        /// This method will return the list of current options available for the passed object-list 
+        /// string.  If there are no choices available, it will return an empty List container. 
+        /// </summary>
+        /// <param name="objectlistname"> The name of the object-list</param>
+        /// <returns>The list of names of the arguments that are contained in the object-list.</returns>
         public List<string> GetFieldListArgumentNames(string objectlistname)
         {
             List<string> ObjectListNames = new List<string>();
@@ -89,22 +102,28 @@ namespace EnergyPlusLib.DataAccess
             return ObjectListNames;
         }
 
-
-
         #endregion
         #region Constructor
+        /// <summary>
+        /// Constructor of the IDFDatabase class. 
+        /// </summary>
         public IDFDatabase()
         {
             this.IDFCommands = new ObservableCollection<IDFCommand>();
         }
         #endregion
         #region IDF Methods
+
+        /// <summary>
+        /// This method Loads Existing IDF file into memory and set the current sIDFFile varible.  
+        /// </summary>
+        /// <param name="sIDFFileName">Path of exisiting IDF file.</param>
         public void LoadIDFFile(string sIDFFileName)
         {
-            this.sIDFFileName = sIDFFileName;
+            this.CurrentIDFFilePath = sIDFFileName;
             IDFCommands.Clear();
             //Read file into string List. 
-            IList<String> idfListString = File.ReadAllLines(this.sIDFFileName).ToList<string>();
+            IList<String> idfListString = File.ReadAllLines(this.CurrentIDFFilePath).ToList<string>();
 
             //find command strings and reformat. 
             IList<string> CommandStrings = CleanCommandStrings(idfListString);
@@ -113,6 +132,13 @@ namespace EnergyPlusLib.DataAccess
                 IDFCommands.Add(GetCommandFromTextString(commandstring));
             }
         }
+
+        /// <summary>
+        /// This method takes a list of strings (from a file usually) and breaks it into easily digestible command strings if present. 
+        /// It will remove all comments and non-relevant charecters from the string
+        /// </summary>
+        /// <param name="idfListString">A list of string containing raw file data.</param>
+        /// <returns>A list of string with one command per string.</returns>
         private IList<string> CleanCommandStrings(IList<String> idfListString)
         {
             List<string> CommandStrings = new List<String>();
@@ -161,6 +187,12 @@ namespace EnergyPlusLib.DataAccess
             }
             return CommandStrings;
         }
+
+        /// <summary>
+        /// Converts a clean string into a command object. 
+        /// </summary>
+        /// <param name="tempstring">string data of a command, no comments or spaces.</param>
+        /// <returns>A command object.</returns>
         private IDFCommand GetCommandFromTextString(string tempstring)
         {
 
@@ -217,6 +249,8 @@ namespace EnergyPlusLib.DataAccess
 
             return new_command;
         }
+
+
         public IList<IDFCommand> FindCommandsFromObjectName(string ObjectName)
         {
 
@@ -241,7 +275,6 @@ namespace EnergyPlusLib.DataAccess
             { this.IDFCommands.Remove(cmd);}
             this.UpdateAllObjectLists();
         }
-
         public void DeleteCommands(IList<IDFCommand> Commands)
         {
 
@@ -328,14 +361,14 @@ namespace EnergyPlusLib.DataAccess
         public bool ProcessEnergyPlusSimulation()
         {
             //Get path of current idf file. 
-            string idf_folder_path = Path.GetDirectoryName(this.sIDFFileName);
+            string idf_folder_path = Path.GetDirectoryName(this.CurrentIDFFilePath);
             //Create new folder to run simulation in. 
             string folder_name = idf_folder_path + @"\simrun\";
             if (System.IO.Directory.Exists(folder_name)) { System.IO.Directory.Delete(folder_name, true); }
             System.IO.Directory.CreateDirectory(folder_name);
 
             //Save IDF file in memory to new folder. 
-            string file_name = folder_name + Path.GetFileName(this.sIDFFileName);
+            string file_name = folder_name + Path.GetFileName(this.CurrentIDFFilePath);
             this.SaveIDFFile(file_name);
 
             //Save location of current folder and change dir to new folder. 
@@ -355,9 +388,9 @@ namespace EnergyPlusLib.DataAccess
             EPStartInfo.CreateNoWindow = false;
 
             //Set up E+ arguments. 
-            string filen = folder_name + Path.GetFileNameWithoutExtension(this.sIDFFileName);
-            string sWeatherfileNoExtention = Path.GetFileNameWithoutExtension(this.sWeatherFile);
-            EPStartInfo.Arguments = "/D /c " + sEnergyPlusRootFolder + "RunEPlus.bat " + filen + " " + sWeatherfileNoExtention;
+            string filen = folder_name + Path.GetFileNameWithoutExtension(this.CurrentIDFFilePath);
+            string sWeatherfileNoExtention = Path.GetFileNameWithoutExtension(this.WeatherFilePath);
+            EPStartInfo.Arguments = "/D /c " + EnergyPlusRootFolder + "RunEPlus.bat " + filen + " " + sWeatherfileNoExtention;
             EPProcess.EnableRaisingEvents = true;
             EPProcess.StartInfo = EPStartInfo;
 
