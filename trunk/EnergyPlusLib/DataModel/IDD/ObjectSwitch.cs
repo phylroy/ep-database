@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EnergyPlusLib.DataModel.IDD
 {
-    public class ObjectSwitch
+    public class IDDObjectSwitch
     {
         #region Properties
         public virtual string Name { get; set; }
@@ -13,12 +13,12 @@ namespace EnergyPlusLib.DataModel.IDD
         public virtual IDDObject Object { get; set; }
         #endregion
         #region Constructors
-        public ObjectSwitch(string Name, string Value)
+        public IDDObjectSwitch(string Name, string Value)
         {
             this.Name = Name;
             this.Value = Value;
         }
-        public ObjectSwitch()
+        public IDDObjectSwitch()
         {
         }
         #endregion

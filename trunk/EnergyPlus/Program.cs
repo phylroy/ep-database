@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,26 +19,19 @@ namespace EnergyPlus
         static void Main(string[] args)
         {
 
+            DirectoryInfo di = new DirectoryInfo(@"C:\EnergyPlusV6-0-0\ExampleFiles\basicsfiles");
+            FileInfo[] rgFiles = di.GetFiles("*.idf");
+            foreach (FileInfo fi in rgFiles)
+            {
+                IDFDatabase idf = new IDFDatabase();
 
-            int processors = Environment.ProcessorCount;
-             IDFDatabase idf = new IDFDatabase();
-            //Set weather file.
-            idf.sWeatherFile= @"C:\EnergyPlusV6-0-0\WeatherData\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw";
-            idf.sEnergyPlusRootFolder = @"C:\EnergyPlusV6-0-0\"; 
-            idf.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
-            idf.LoadIDFFile(@"C:\EnergyPlusV6-0-0\ExampleFiles\5ZoneBoilerOutsideAirReset.idf");
-
-            //Find all Zones. 
-            //List<Command> Zones = idf.FindCommandsFromObjectName(@"Zone").ToList<Command>();
-            //List<Command> Surfaces = idf.FindCommands(@"FenestrationSurface:Detailed", "Zone Name", "PLENUM-1").ToList<Command>();
-            List<Command> CommandError = idf.FindCommandsWithRangeErrors().ToList<Command>();
-
-            //BuildingSurfaces.ForEach(delegate(Command command) { command.IsMuted = true; });
-            //BuildingSurfaces.ForEach(delegate(Command command) { command.SetArgument(@"Surface Type","Wall"); });
-            //BuildingSurfaces.ForEach(delegate(Command s) { s.SetArgumentbyDataName(@"A2", "Floor"); });
-            //idf.ChangeSimulationPeriod(1, 1, 12, 31);
-            //idf.ChangeAspectRatioXY(1.0, 2.0);
-            idf.ProcessEnergyPlusSimulation();
+                idf.sWeatherFile = @"C:\EnergyPlusV6-0-0\WeatherData\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw";
+                idf.sEnergyPlusRootFolder = @"C:\EnergyPlusV6-0-0\";
+                idf.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
+                idf.LoadIDFFile(fi.FullName);
+                List<IDFCommand> CommandError = idf.FindCommandsWithRangeErrors().ToList<IDFCommand>();
+                idf.ProcessEnergyPlusSimulation();   
+            }
         }
     }
 }

@@ -16,12 +16,12 @@ namespace EnergyPlusLib.DataAccess
     {
         #region Properties
         private IDDDataBase idd = IDDDataBase.GetInstance();
-        private IList<Command> IDFCommands;
+        private IList<IDFCommand> IDFCommands;
         public string sEnergyPlusRootFolder;
         public string sIDFFileName;
         public string sWeatherFile;
         //Objectlist methods. 
-        public Dictionary<string, List<Argument>> IDFObjectLists = new Dictionary<string, List<Argument>>();
+        public Dictionary<string, List<IDFArgument>> IDFObjectLists = new Dictionary<string, List<IDFArgument>>();
 
 
         public void LoadIDDFile(string filename)
@@ -32,18 +32,18 @@ namespace EnergyPlusLib.DataAccess
 
         public void UpdateAllObjectLists()
         {
-            IDFObjectLists = new Dictionary<string, List<Argument>>();
-            foreach (Command command in this.IDFCommands)
+            IDFObjectLists = new Dictionary<string, List<IDFArgument>>();
+            foreach (IDFCommand command in this.IDFCommands)
             {
-                foreach (Argument argument in command.FlattenedArgumentList())
+                foreach (IDFArgument argument in command.FlattenedArgumentList())
                 {
                     foreach (string reference in argument.Field.References())
                     {
                         //using TrygetValue because it is faster. 
-                        List<Argument> value1 = new List<Argument>();
+                        List<IDFArgument> value1 = new List<IDFArgument>();
                         if (false == IDFObjectLists.TryGetValue(reference, out value1) )
                         {
-                            value1 = IDFObjectLists[reference] = new List<Argument>();
+                            value1 = IDFObjectLists[reference] = new List<IDFArgument>();
                         }
                         
                         if (false == value1.Contains(argument))
@@ -62,9 +62,9 @@ namespace EnergyPlusLib.DataAccess
         public void UpdateObjectList(string objectlistname)
         {
 
-            List<Argument> CommandList = new List<Argument>();
+            List<IDFArgument> CommandList = new List<IDFArgument>();
             //find all commands that are of this object type. 
-            foreach (Field field in idd.IDDObjectLists[objectlistname])
+            foreach (IDDField field in idd.IDDObjectLists[objectlistname])
             {
                 CommandList.AddRange(this.FindAllArgumentsOfFieldType(field));
             }
@@ -79,9 +79,9 @@ namespace EnergyPlusLib.DataAccess
             //todo some output varible object lists are only present after a run. these start with a "autoRDD" prefix. 
             if (IDFObjectLists.ContainsKey(objectlistname))
             {
-                List<Argument> Arguments = this.IDFObjectLists[objectlistname];
+                List<IDFArgument> Arguments = this.IDFObjectLists[objectlistname];
                 
-                foreach (Argument argument in Arguments)
+                foreach (IDFArgument argument in Arguments)
                 {
                     ObjectListNames.Add( argument.Value );
                 }
@@ -95,7 +95,7 @@ namespace EnergyPlusLib.DataAccess
         #region Constructor
         public IDFDatabase()
         {
-            this.IDFCommands = new ObservableCollection<Command>();
+            this.IDFCommands = new ObservableCollection<IDFCommand>();
         }
         #endregion
         #region IDF Methods
@@ -124,7 +124,12 @@ namespace EnergyPlusLib.DataAccess
                 //Remove comments. 
                 string sline = line;
                 sline = Regex.Replace(line, @"(^\s*.*)(!.*)", @"$1");
-                sline = Regex.Replace(sline, @"(^!.*)", @"");
+                sline = Regex.Replace(sline, @"(^\s*!.*)", @"");
+                sline = Regex.Replace(sline, @"(^\s*Lead Input\s*;)", @"");
+                sline = Regex.Replace(sline, @"(^\s*End Lead Input\s*;)", @"");
+                sline = Regex.Replace(sline, @"(^\s*End Simulation Data\s*;)", @"");
+                sline = Regex.Replace(sline, @"(^\s*Simulation Data\s*;)", @"");
+
                 //check if line is a blank or whitespace only.
                 if (sline != "" || !Regex.IsMatch(sline, @"^\s*$"))
                 {
@@ -156,10 +161,10 @@ namespace EnergyPlusLib.DataAccess
             }
             return CommandStrings;
         }
-        private Command GetCommandFromTextString(string tempstring)
+        private IDFCommand GetCommandFromTextString(string tempstring)
         {
 
-            Command new_command;
+            IDFCommand new_command;
             //remove ; 
             tempstring = Regex.Replace(tempstring, @"(^.*)(;\s*$)", @"$1").Trim();
             //split along ,
@@ -167,7 +172,7 @@ namespace EnergyPlusLib.DataAccess
 
             //find object.
             IDDObject object_type = idd.GetObject(items[0].Trim());
-            new_command = new Command(this,object_type);
+            new_command = new IDFCommand(this,object_type);
             //remove name from List.
             items.RemoveAt(0);
 
@@ -188,10 +193,22 @@ namespace EnergyPlusLib.DataAccess
                 for (int itemcounter = 0; itemcounter < items.Count; itemcounter = itemcounter + object_type.NumberOfExtensibleFields)
                 {
 
-                    List<Argument> ArgumentList = new List<Argument>();
+                    List<IDFArgument> ArgumentList = new List<IDFArgument>();
                     for (int fieldcounter = 0; fieldcounter < object_type.NumberOfExtensibleFields; fieldcounter++)
                     {
-                        ArgumentList.Add(new Argument(this, object_type.ExtensibleFields[fieldcounter], items[itemcounter + fieldcounter]));
+                        string value;
+                        try
+                        {// Some of the example file do not have full extensible sets. Energyplus seemd to ignore this. I guess the interface should 
+                            // as well. 
+                            //To-Do implement a warning that we are adding a empty "" argument. 
+                            value = items[itemcounter + fieldcounter];
+                        }
+                        catch (System.ArgumentOutOfRangeException)
+                        {
+                            value = "";
+                        }
+
+                        ArgumentList.Add(new IDFArgument(this, object_type.ExtensibleFields[fieldcounter], value));
 
                     }
                     new_command.ExtensibleSetArguments.Add(ArgumentList);
@@ -200,19 +217,19 @@ namespace EnergyPlusLib.DataAccess
 
             return new_command;
         }
-        public IList<Command> FindCommandsFromObjectName(string ObjectName)
+        public IList<IDFCommand> FindCommandsFromObjectName(string ObjectName)
         {
 
-            List<Command> commands = (from command in IDFCommands
+            List<IDFCommand> commands = (from command in IDFCommands
                                       where command.Object.Name == ObjectName
-                                      select command).ToList<Command>();
+                                      select command).ToList<IDFCommand>();
             return commands;
         }
         public void SaveIDFFile(string path)
         {
             TextWriter tw = new StreamWriter(path);
 
-            foreach (Command command in IDFCommands)
+            foreach (IDFCommand command in IDFCommands)
             {
                 tw.WriteLine(command.ToIDFString());
             }
@@ -220,22 +237,22 @@ namespace EnergyPlusLib.DataAccess
         }
         public void DeleteCommands(string sObjectName)
         {
-            foreach (Command cmd in FindCommandsFromObjectName(sObjectName))
+            foreach (IDFCommand cmd in FindCommandsFromObjectName(sObjectName))
             { this.IDFCommands.Remove(cmd);}
             this.UpdateAllObjectLists();
         }
 
-        public void DeleteCommands(IList<Command> Commands)
+        public void DeleteCommands(IList<IDFCommand> Commands)
         {
 
-            foreach (Command cmd in Commands)
+            foreach (IDFCommand cmd in Commands)
             { this.IDFCommands.Remove(cmd);}
             this.UpdateAllObjectLists();
         }
 
 
         //This should be the only way a command gets deleted.
-        public void DeleteCommand(Command command)
+        public void DeleteCommand(IDFCommand command)
         {
             if (this.IDFCommands.Contains(command)) 
             { this.IDFCommands.Remove(command); };
@@ -263,41 +280,41 @@ namespace EnergyPlusLib.DataAccess
                 GetCommandFromTextString(String.Format("GeometryTransform,XY,{0},{1}", X, Y))
                 );
         }
-        public IList<Command> FindAllCommandsOfObjectType(IDDObject object1)
+        public IList<IDFCommand> FindAllCommandsOfObjectType(IDDObject object1)
         {
-            List<Command> objects = (
+            List<IDFCommand> objects = (
                     from command in this.IDFCommands
                     where command.Object == object1
-                    select command).ToList<Command>();
+                    select command).ToList<IDFCommand>();
             return objects;
         }
 
 
-        public IList<Argument> FindAllArgumentsOfFieldType(Field field1)
+        public IList<IDFArgument> FindAllArgumentsOfFieldType(IDDField field1)
         {
-            List<Argument> args = (
+            List<IDFArgument> args = (
                     from command in this.IDFCommands
                     from argument in command.FlattenedArgumentList()
                     where argument.Field == field1
-                    select argument).Distinct().ToList<Argument>();
-            return args.ToList<Argument>();
+                    select argument).Distinct().ToList<IDFArgument>();
+            return args.ToList<IDFArgument>();
         }
 
 
-        public IList<Command> FindCommands(string ObjectName, string FieldName, string FieldValue)
+        public IList<IDFCommand> FindCommands(string ObjectName, string FieldName, string FieldValue)
         {
 
-            List<Command> objects = (from surface in FindCommandsFromObjectName(ObjectName)
+            List<IDFCommand> objects = (from surface in FindCommandsFromObjectName(ObjectName)
                                      where surface.DoesArgumentExist(FieldName) && surface.GetArgument(FieldName).Value == FieldValue
-                                     select surface).ToList<Command>();
+                                     select surface).ToList<IDFCommand>();
             return objects;
         }
 
-        public IList<Command> FindCommandsWithRangeErrors()
+        public IList<IDFCommand> FindCommandsWithRangeErrors()
         {
             this.UpdateAllObjectLists();
-            IList<Command> Commands = new List<Command>();
-            foreach (Command command in this.IDFCommands)
+            IList<IDFCommand> Commands = new List<IDFCommand>();
+            foreach (IDFCommand command in this.IDFCommands)
             {
                 if (command.CheckValues() == true)
                 {
@@ -385,10 +402,10 @@ namespace EnergyPlusLib.DataAccess
         #endregion
         #region Properties
         public IList<IDDObject> IDDObjects;
-        public Dictionary<string, List<Field>> IDDObjectLists = new Dictionary<string, List<Field>>();
+        public Dictionary<string, List<IDDField>> IDDObjectLists = new Dictionary<string, List<IDDField>>();
         #endregion
         #region IDD Methods
-        public List<Field> GetObjectListReferences(String Reference)
+        public List<IDDField> GetObjectListReferences(String Reference)
         {
 
             var q = (from object1 in IDDObjects.AsEnumerable()
@@ -396,9 +413,9 @@ namespace EnergyPlusLib.DataAccess
                      from fieldswitch in field1.Switches
                      where fieldswitch.Name == @"\references"
                      select field1).Distinct();
-            return q.ToList<Field>();
+            return q.ToList<IDDField>();
         }
-        public Dictionary<string, List<Field>> GetObjectList()
+        public Dictionary<string, List<IDDField>> GetObjectList()
         {
 
             var q = from object1 in IDDObjects.AsEnumerable()
@@ -415,7 +432,7 @@ namespace EnergyPlusLib.DataAccess
             {
                 if (!IDDObjectLists.ContainsKey(x.val))
                 {
-                    List<Field> objectlist = new List<Field>();
+                    List<IDDField> objectlist = new List<IDDField>();
                     IDDObjectLists.Add(x.val, objectlist);
                 }
                 IDDObjectLists[x.val].Add(x.fld);
@@ -452,7 +469,7 @@ namespace EnergyPlusLib.DataAccess
             IDDObject current_object = null;
             String current_group = null;
             String current_object_name = null;
-            Field current_field = null;
+            IDDField current_field = null;
             int iExtensible = 0;
             int field_counter = 0;
             bool bBeginExtensible = false;
@@ -501,7 +518,7 @@ namespace EnergyPlusLib.DataAccess
                         //Found new field.
                         string field_data_name = field_match.Groups[1].ToString().Trim();
                         int field_position = field_counter++;
-                        current_field = new Field(field_data_name, field_position, current_object);
+                        current_field = new IDDField(field_data_name, field_position, current_object);
                         current_object.AddField(current_field);
 
 
@@ -509,7 +526,7 @@ namespace EnergyPlusLib.DataAccess
                         //Get rid of the "1" if it is an extensible field as to not confuse people. 
                         string field_switch = @"\field";
                         string field_switch_value = field_match.Groups[4].ToString().Trim();
-                        current_field.AddSwitch(new FieldSwitch(field_switch, field_switch_value));
+                        current_field.AddSwitch(new IDDFieldSwitch(field_switch, field_switch_value));
 
                         if (bBeginExtensible == true) iExtensible--;
                     }
@@ -541,7 +558,7 @@ namespace EnergyPlusLib.DataAccess
                             object_switch_name = switch_match.Groups[1].ToString().Trim();
                             object_switch_value = switch_match.Groups[2].ToString().Trim();
                         }
-                        current_object.AddSwitch(new ObjectSwitch(object_switch_name, object_switch_value));
+                        current_object.AddSwitch(new IDDObjectSwitch(object_switch_name, object_switch_value));
                     }
 
                     //Check if a field switch.
@@ -551,7 +568,7 @@ namespace EnergyPlusLib.DataAccess
                         string field_switch = switch_match.Groups[1].ToString().Trim();
                         string field_switch_value = switch_match.Groups[2].ToString().Trim();
                         //Get rid of the "1" if it is an extensible field as to not confuse people. 
-                        current_field.AddSwitch(new FieldSwitch(field_switch, field_switch_value));
+                        current_field.AddSwitch(new IDDFieldSwitch(field_switch, field_switch_value));
 
                         if (field_switch == @"\begin-extensible")
                         {

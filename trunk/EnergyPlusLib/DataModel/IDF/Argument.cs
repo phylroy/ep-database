@@ -7,11 +7,11 @@ using EnergyPlusLib.DataAccess;
 
 namespace EnergyPlusLib.DataModel.IDF
 {
-    public class Argument  
+    public class IDFArgument  
     {
         #region Properties
         private string value;
-        public Field Field;
+        public IDDField Field;
         public bool HasError { private set; get; }
         public string Value 
         {
@@ -23,10 +23,10 @@ namespace EnergyPlusLib.DataModel.IDF
                 foreach (string reference in this.Field.References())
                 {
                     //using TrygetValue because it is faster. 
-                    List<Argument> value1 = new List<Argument>();
+                    List<IDFArgument> value1 = new List<IDFArgument>();
                     if (false == idf.IDFObjectLists.TryGetValue(reference, out value1))
                     {
-                        value1 = idf.IDFObjectLists[reference] = new List<Argument>();
+                        value1 = idf.IDFObjectLists[reference] = new List<IDFArgument>();
                     }
 
                     if (false == value1.Contains(this))
@@ -214,7 +214,7 @@ namespace EnergyPlusLib.DataModel.IDF
 
         #endregion
         #region Constructor
-        public Argument(IDFDatabase idf,  Field field, string Value)
+        public IDFArgument(IDFDatabase idf,  IDDField field, string Value)
         {
             this.idf = idf;
             this.Field = field;

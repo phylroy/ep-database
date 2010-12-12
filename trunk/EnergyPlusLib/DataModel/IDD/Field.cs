@@ -5,17 +5,17 @@ using System.Text;
 
 namespace EnergyPlusLib.DataModel.IDD
 {
-    public class Field
+    public class IDDField
     {
         #region Properties
         public String DataName { get; private set; }
         public int Order { get; set; }
         public IDDObject Object { get; set; }
-        public IList<FieldSwitch> Switches { get; private set; }
+        public IList<IDDFieldSwitch> Switches { get; private set; }
         public IList<IDDObject> ObjectListTypeChoices = null;
         #endregion
         #region Constructors
-        public Field(string DataName, int Order, IDDObject Object)
+        public IDDField(string DataName, int Order, IDDObject Object)
             : this()
         {
             this.DataName = DataName;
@@ -23,9 +23,9 @@ namespace EnergyPlusLib.DataModel.IDD
             this.Object = Object;
         }
 
-        public Field()
+        public IDDField()
         {
-            Switches = new List<FieldSwitch>();
+            Switches = new List<IDDFieldSwitch>();
             ObjectListTypeChoices = new List<IDDObject>();
         }
 
@@ -43,7 +43,7 @@ namespace EnergyPlusLib.DataModel.IDD
 
             return true;
         }
-        public FieldSwitch FindSwitch(string switch_name)
+        public IDDFieldSwitch FindSwitch(string switch_name)
         {
             var result = from Switch in Switches
                          where Switch.Name == switch_name
@@ -57,7 +57,7 @@ namespace EnergyPlusLib.DataModel.IDD
                          select Switch.Value;
             return result.FirstOrDefault();
         }
-        public virtual void AddSwitch(FieldSwitch Switch)
+        public virtual void AddSwitch(IDDFieldSwitch Switch)
         {
             this.Switches.Add(Switch);
         }
