@@ -7,27 +7,27 @@ using EnergyPlusLib.DataAccess;
 
 namespace EnergyPlusLib.DataModel.IDF
 {
-    public class Command 
+    public class IDFCommand 
     {
         #region Properties
         public IDDObject Object;
         public virtual string UserComments { get; set; }
-        public IList<Argument> RegularArguments { get; set; }
-        public IList<IList<Argument>> ExtensibleSetArguments { get; set; }
+        public IList<IDFArgument> RegularArguments { get; set; }
+        public IList<IList<IDFArgument>> ExtensibleSetArguments { get; set; }
         public bool IsMuted;
         public bool HasError;
         public IDFDatabase idf;
 
         #endregion
         #region Constructors
-        public Command(IDFDatabase idf,IDDObject Object)
+        public IDFCommand(IDFDatabase idf,IDDObject Object)
             : this(idf)
         {
             this.Object = Object;
             this.idf = idf;
             int fieldcounter = 0;
             string value =null;
-            foreach (Field field in Object.RegularFields)
+            foreach (IDDField field in Object.RegularFields)
             {
                 
                 //If required Field and within minimum field set default. Otherwise keep string empty. 
@@ -36,30 +36,30 @@ namespace EnergyPlusLib.DataModel.IDF
                 else
                 { value = null;}
 
-                Argument arg = new Argument(this.idf, field, value);
+                IDFArgument arg = new IDFArgument(this.idf, field, value);
                 this.RegularArguments.Add(arg);
                 fieldcounter++;
             }
 
-            List<Argument> ExtensibleSet = new List<Argument>();
-            foreach (Field field in this.Object.ExtensibleFields)
+            List<IDFArgument> ExtensibleSet = new List<IDFArgument>();
+            foreach (IDDField field in this.Object.ExtensibleFields)
             {
                 //If required Field and within minimum field set default. Otherwise keep string empty. 
                 if (field.IsRequiredField() && fieldcounter < Convert.ToInt32(Object.MinimumFields()))
                 { value = field.Default(); }
                 else
                 { value = null; }
-                Argument arg = new Argument(this.idf, field, field.Default());
+                IDFArgument arg = new IDFArgument(this.idf, field, field.Default());
                 ExtensibleSet.Add(arg);
                 fieldcounter++;
             }
 
             ExtensibleSetArguments.Add(ExtensibleSet);
         }
-        private Command(IDFDatabase idf)
+        private IDFCommand(IDFDatabase idf)
         {
-            this.RegularArguments = new List<Argument>();
-            this.ExtensibleSetArguments = new List<IList<Argument>>();
+            this.RegularArguments = new List<IDFArgument>();
+            this.ExtensibleSetArguments = new List<IList<IDFArgument>>();
             this.IsMuted = false;
         }
 
@@ -71,7 +71,7 @@ namespace EnergyPlusLib.DataModel.IDF
         public bool CheckValues()
         {
             this.HasError = false;
-            foreach (Argument arg in FlattenedArgumentList())
+            foreach (IDFArgument arg in FlattenedArgumentList())
             {
                 if (arg.RangeCheckValue() == true) { this.HasError = true; }
             }
@@ -79,15 +79,15 @@ namespace EnergyPlusLib.DataModel.IDF
         }
 
 
-        public IList<Argument> FlattenedArgumentList()
+        public IList<IDFArgument> FlattenedArgumentList()
         {
-            IList<Argument> ExtArgs = (from argumentsets in this.ExtensibleSetArguments
+            IList<IDFArgument> ExtArgs = (from argumentsets in this.ExtensibleSetArguments
                                       from argument in argumentsets
-                                      select argument).ToList<Argument>();
+                                      select argument).ToList<IDFArgument>();
 
-            IList<Argument> FullArgs = new List<Argument>();
-            foreach (Argument item in this.RegularArguments) FullArgs.Add(item);
-            foreach (Argument item in ExtArgs) FullArgs.Add(item);
+            IList<IDFArgument> FullArgs = new List<IDFArgument>();
+            foreach (IDFArgument item in this.RegularArguments) FullArgs.Add(item);
+            foreach (IDFArgument item in ExtArgs) FullArgs.Add(item);
             return FullArgs;
         }
 
@@ -97,7 +97,7 @@ namespace EnergyPlusLib.DataModel.IDF
             if (this.IsMuted) Prefix = "!";
 
             string tempstring1 = Prefix + this.Object.Name + ",\r\n";
-            IList<Argument> FullList;
+            IList<IDFArgument> FullList;
             FullList = FlattenedArgumentList();
 
             //Workaround for cosntruction types. 
@@ -120,14 +120,14 @@ namespace EnergyPlusLib.DataModel.IDF
                 || this.Object.Name.ToUpper() == "PlantEquipmentOperation:ComponentSetpoint".ToUpper()
                 )
             {
-                FullList = new List<Argument>();
+                FullList = new List<IDFArgument>();
                 FullList = (from arg in FlattenedArgumentList()
                             where arg.Value != null
-                            select arg).ToList<Argument>();
+                            select arg).ToList<IDFArgument>();
             }
 
             int argumentcounter = 0;
-            foreach (Argument argument in FullList)
+            foreach (IDFArgument argument in FullList)
             {
                 
                 //check to see if rest of arguments are either blank or null. 
@@ -189,20 +189,20 @@ namespace EnergyPlusLib.DataModel.IDF
             if (this.IsMuted) Prefix = "!";
 
             string tempstring1 = Prefix + this.Object.Name + ",";
-            IList<Argument> FullList;
+            IList<IDFArgument> FullList;
             FullList = FlattenedArgumentList();
 
             //Workaround for cosntruction types. 
             if (this.Object.Name.ToUpper() == "Construction".ToUpper()
                 || this.Object.Name.ToUpper() == "ZoneControl:Thermostat".ToUpper())
             {
-                FullList = new List<Argument>();
+                FullList = new List<IDFArgument>();
                 FullList = (from arg in FlattenedArgumentList()
                             where arg.Value != null
-                            select arg).ToList<Argument>();
+                            select arg).ToList<IDFArgument>();
             }
 
-            foreach (Argument argument in FullList)
+            foreach (IDFArgument argument in FullList)
             {
 
                 String units = argument.Field.Units();
@@ -229,9 +229,9 @@ namespace EnergyPlusLib.DataModel.IDF
         }
 
 
-        public Argument GetArgument(String fieldname)
+        public IDFArgument GetArgument(String fieldname)
         {
-            Argument Argument = (from argument in this.FlattenedArgumentList()
+            IDFArgument Argument = (from argument in this.FlattenedArgumentList()
                                  where argument.Field.Name().ToLower() == fieldname.Trim().ToLower()
                                  select argument).FirstOrDefault();
             return Argument;
@@ -240,7 +240,7 @@ namespace EnergyPlusLib.DataModel.IDF
 
         public bool DoesArgumentExist(String fieldname)
         {
-            Argument Argument = (from argument in this.FlattenedArgumentList()
+            IDFArgument Argument = (from argument in this.FlattenedArgumentList()
                                  where argument.Field.Name().ToLower() == fieldname.Trim().ToLower()
                                  select argument).FirstOrDefault();
             return Argument == null ? false : true;
@@ -248,25 +248,23 @@ namespace EnergyPlusLib.DataModel.IDF
 
         public void SetArgument(String fieldname, String value)
         {
-            IList<Argument> Arguments = (from argument in this.FlattenedArgumentList()
+            IList<IDFArgument> Arguments = (from argument in this.FlattenedArgumentList()
                                         where argument.Field.Name().ToLower() == fieldname.Trim().ToLower()
-                                        select argument).ToList<Argument>();
+                                        select argument).ToList<IDFArgument>();
 
 
 
-            foreach (Argument s in Arguments) { s.Value = value.Trim(); };
+            foreach (IDFArgument s in Arguments) { s.Value = value.Trim(); };
         }
         public void SetArgumentbyDataName(String DataName, String value)
         {
-            IList<Argument> Arguments = (from argument in this.FlattenedArgumentList()
+            IList<IDFArgument> Arguments = (from argument in this.FlattenedArgumentList()
                                         where argument.Field.DataName == DataName
-                                        select argument).ToList<Argument>();
+                                        select argument).ToList<IDFArgument>();
 
 
-            foreach (Argument s in Arguments) { s.Value = value.Trim(); };
+            foreach (IDFArgument s in Arguments) { s.Value = value.Trim(); };
         }
         #endregion
-
-
     }
 }

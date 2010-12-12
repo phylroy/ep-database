@@ -5,20 +5,20 @@ using System.Text;
 
 namespace EnergyPlusLib.DataModel.IDD
 {
-    public class FieldSwitch
+    public class IDDFieldSwitch
     {
         #region Properties
         public string Name { get; set; }
         public string Value { get; set; }
-        public Field Field { get; set; }
+        public IDDField Field { get; set; }
         #endregion
         #region Constructors
-        public FieldSwitch(string Name, string Value)
+        public IDDFieldSwitch(string Name, string Value)
         {
             this.Name = Name;
             this.Value = Value;
         }
-        public FieldSwitch() { }
+        public IDDFieldSwitch() { }
         #endregion
     }
 }
