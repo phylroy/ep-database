@@ -19,26 +19,30 @@ namespace EnergyPlusLib.DataModel.IDF
             {
                 this.value = value;
                 RangeCheckValue(value);
-
-                foreach (string reference in this.Field.References())
-                {
-                    //using TrygetValue because it is faster. 
-                    List<IDFArgument> value1 = new List<IDFArgument>();
-                    if (false == idf.IDFObjectLists.TryGetValue(reference, out value1))
-                    {
-                        value1 = idf.IDFObjectLists[reference] = new List<IDFArgument>();
-                    }
-
-                    if (false == value1.Contains(this))
-                    {
-                        value1.Add(this);
-                    }
-                }
+                UpdateObjectListReferences();
 
 
             }
 
             get{ return this.value; } 
+        }
+
+        private void UpdateObjectListReferences()
+        {
+            foreach (string reference in this.Field.References())
+            {
+                //using TrygetValue because it is faster. 
+                List<IDFArgument> ListOfArguments = new List<IDFArgument>();
+                if (false == this.idf.IDFObjectLists.TryGetValue(reference, out ListOfArguments))
+                {
+                    ListOfArguments = this.idf.IDFObjectLists[reference] = new List<IDFArgument>();
+                }
+
+                if (false == ListOfArguments.Contains(this))
+                {
+                    ListOfArguments.Add(this);
+                }
+            }
         }
         public IDFDatabase idf;
 

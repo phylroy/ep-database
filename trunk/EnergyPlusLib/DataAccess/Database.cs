@@ -66,15 +66,16 @@ namespace EnergyPlusLib.DataAccess
                     foreach (string reference in argument.Field.References())
                     {
                         //using TrygetValue because it is faster. 
-                        List<IDFArgument> value1 = new List<IDFArgument>();
-                        if (false == IDFObjectLists.TryGetValue(reference, out value1) )
+                        List<IDFArgument> ListOfArguments = new List<IDFArgument>();
+                        if (false == IDFObjectLists.TryGetValue(reference, out ListOfArguments) )
                         {
-                            value1 = IDFObjectLists[reference] = new List<IDFArgument>();
+                            //Made the result equal to ListOfArguments so I don't have to do an array lookup again below. 
+                            ListOfArguments = IDFObjectLists[reference] = new List<IDFArgument>();
                         }
                         
-                        if (false == value1.Contains(argument))
+                        if (false == ListOfArguments.Contains(argument))
                         {
-                            value1.Add(argument);
+                            ListOfArguments.Add(argument);
                         }
                     }
                 }
@@ -249,7 +250,6 @@ namespace EnergyPlusLib.DataAccess
 
             return new_command;
         }
-
 
         public IList<IDFCommand> FindCommandsFromObjectName(string ObjectName)
         {
@@ -438,16 +438,7 @@ namespace EnergyPlusLib.DataAccess
         public Dictionary<string, List<IDDField>> IDDObjectLists = new Dictionary<string, List<IDDField>>();
         #endregion
         #region IDD Methods
-        public List<IDDField> GetObjectListReferences(String Reference)
-        {
 
-            var q = (from object1 in IDDObjects.AsEnumerable()
-                     from field1 in object1.RegularFields
-                     from fieldswitch in field1.Switches
-                     where fieldswitch.Name == @"\references"
-                     select field1).Distinct();
-            return q.ToList<IDDField>();
-        }
         public Dictionary<string, List<IDDField>> GetObjectList()
         {
 
