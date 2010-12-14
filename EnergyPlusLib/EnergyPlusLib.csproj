@@ -80,7 +80,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataAccess\Database.cs" />
+    <Compile Include="DataAccess\IDDDataBase.cs" />
+    <Compile Include="DataAccess\IDFDatabase.cs" />
     <Compile Include="DataModel\IDD\Field.cs" />
     <Compile Include="DataModel\IDD\Object.cs" />
     <Compile Include="DataModel\IDD\ObjectSwitch.cs" />

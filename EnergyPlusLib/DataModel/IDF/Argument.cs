@@ -1,30 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using EnergyPlusLib.DataModel.IDD;
 using EnergyPlusLib.DataAccess;
+using EnergyPlusLib.DataModel.IDD;
 
 namespace EnergyPlusLib.DataModel.IDF
 {
-    public class IDFArgument  
+    public class IDFArgument
     {
         #region Properties
-        private string value;
+
         public IDDField Field;
+        public IDFDatabase idf;
+        private string value;
         public bool HasError { private set; get; }
-        public string Value 
+
+        public string Value
         {
             set
             {
                 this.value = value;
-                RangeCheckValue(value);
-                UpdateObjectListReferences();
-
-
+                this.RangeCheckValue(value);
+                this.UpdateObjectListReferences();
             }
 
-            get{ return this.value; } 
+            get { return this.value; }
         }
 
         private void UpdateObjectListReferences()
@@ -32,7 +32,7 @@ namespace EnergyPlusLib.DataModel.IDF
             foreach (string reference in this.Field.References())
             {
                 //using TrygetValue because it is faster. 
-                List<IDFArgument> ListOfArguments = new List<IDFArgument>();
+                var ListOfArguments = new List<IDFArgument>();
                 if (false == this.idf.IDFObjectLists.TryGetValue(reference, out ListOfArguments))
                 {
                     ListOfArguments = this.idf.IDFObjectLists[reference] = new List<IDFArgument>();
@@ -44,27 +44,24 @@ namespace EnergyPlusLib.DataModel.IDF
                 }
             }
         }
-        public IDFDatabase idf;
 
         public bool RangeCheckValue()
         {
-            return RangeCheckValue(this.Value);
+            return this.RangeCheckValue(this.Value);
         }
 
-        public bool RangeCheckValue(string value)
+        public bool RangeCheckValue(string valuein)
         {
-            
             this.HasError = false;
             //Check type if not null and if it is a required field..If it is blank and not required..leave the blank and don't do check.
-            if ((value == null || value == "") && !this.Field.IsRequiredField())
+            if ((String.IsNullOrEmpty(valuein)) && !this.Field.IsRequiredField())
             {
-                this.value = value;
+                this.value = valuein;
             }
             else
             {
                 switch (this.FieldType())
                 {
-
                     case "integer":
 
 
@@ -72,15 +69,21 @@ namespace EnergyPlusLib.DataModel.IDF
 
                         try
                         {
-
-                            int ivalue = Convert.ToInt32(value);
+                            int ivalue = Convert.ToInt32(valuein);
 
                             if (
-                                    (Field.RangeGreaterThan() == null || (Field.RangeGreaterThan() != null && ivalue > Convert.ToInt32(Field.RangeGreaterThan()))) &&
-                                    (Field.RangeLessThan() == null || (Field.RangeLessThan() != null && ivalue < Convert.ToInt32(Field.RangeLessThan()))) &&
-                                    (Field.RangeMaximum() == null || (Field.RangeMaximum() != null && ivalue <= Convert.ToInt32(Field.RangeMaximum()))) &&
-                                    (Field.RangeMinimum() == null || (Field.RangeMinimum() != null && ivalue >= Convert.ToInt32(Field.RangeMinimum())))
-
+                                (this.Field.RangeGreaterThan() == null ||
+                                 (this.Field.RangeGreaterThan() != null &&
+                                  ivalue > Convert.ToInt32(this.Field.RangeGreaterThan()))) &&
+                                (this.Field.RangeLessThan() == null ||
+                                 (this.Field.RangeLessThan() != null &&
+                                  ivalue < Convert.ToInt32(this.Field.RangeLessThan()))) &&
+                                (this.Field.RangeMaximum() == null ||
+                                 (this.Field.RangeMaximum() != null &&
+                                  ivalue <= Convert.ToInt32(this.Field.RangeMaximum()))) &&
+                                (this.Field.RangeMinimum() == null ||
+                                 (this.Field.RangeMinimum() != null &&
+                                  ivalue >= Convert.ToInt32(this.Field.RangeMinimum())))
                                 )
                             {
                                 this.value = ivalue.ToString();
@@ -91,35 +94,47 @@ namespace EnergyPlusLib.DataModel.IDF
                                 this.HasError = true;
                             }
                         }
-                        catch (System.Exception)
+                        catch (Exception)
                         {
                             //string value is not convertable to a double. 
                             this.HasError = true;
-                        } 
+                        }
                         break;
 
                     case "real":
 
-                        bool isAutoable = (value != null && this.Field.IsAutoSizable() && value.ToLower() == "autosize")
-                                            || (value != null &&  this.Field.IsAutoCalculable() && value.ToLower() == "autocalculate");
+                        bool isAutoable = (valuein != null && this.Field.IsAutoSizable() &&
+                                           valuein.ToLower() == "autosize")
+                                          ||
+                                          (valuein != null && this.Field.IsAutoCalculable() &&
+                                           valuein.ToLower() == "autocalculate");
 
                         //check if autocalc or autosize apparently there are bugs in E+ that allow Autosiza and AutoCalc to be use interchangably. 
                         if (isAutoable)
-                        { this.HasError = false; }
+                        {
+                            this.HasError = false;
+                        }
                         else
                         {
                             try
                             {
-
-                                double dvalue = Convert.ToDouble(value);
+                                double dvalue = Convert.ToDouble(valuein);
 
 
                                 //Convert String to double. 
                                 if (
-                                    (Field.RangeGreaterThan() == null || (Field.RangeGreaterThan() != null && Convert.ToDouble(value) > Convert.ToDouble(Field.RangeGreaterThan()))) &&
-                                    (Field.RangeLessThan() == null || (Field.RangeLessThan() != null && Convert.ToDouble(value) < Convert.ToDouble(Field.RangeLessThan()))) &&
-                                    (Field.RangeMaximum() == null || (Field.RangeMaximum() != null && Convert.ToDouble(value) <= Convert.ToDouble(Field.RangeMaximum()))) &&
-                                    (Field.RangeMinimum() == null || (Field.RangeMinimum() != null && Convert.ToDouble(value) >= Convert.ToDouble(Field.RangeMinimum())))
+                                    (this.Field.RangeGreaterThan() == null ||
+                                     (this.Field.RangeGreaterThan() != null &&
+                                      Convert.ToDouble(valuein) > Convert.ToDouble(this.Field.RangeGreaterThan()))) &&
+                                    (this.Field.RangeLessThan() == null ||
+                                     (this.Field.RangeLessThan() != null &&
+                                      Convert.ToDouble(valuein) < Convert.ToDouble(this.Field.RangeLessThan()))) &&
+                                    (this.Field.RangeMaximum() == null ||
+                                     (this.Field.RangeMaximum() != null &&
+                                      Convert.ToDouble(valuein) <= Convert.ToDouble(this.Field.RangeMaximum()))) &&
+                                    (this.Field.RangeMinimum() == null ||
+                                     (this.Field.RangeMinimum() != null &&
+                                      Convert.ToDouble(valuein) >= Convert.ToDouble(this.Field.RangeMinimum())))
                                     )
                                 {
                                     this.HasError = false;
@@ -128,28 +143,27 @@ namespace EnergyPlusLib.DataModel.IDF
                                 {
                                     this.HasError = true;
                                 }
-
-
-
-
-
                             }
 
-                            catch (System.Exception)
-                            { 
+                            catch (Exception)
+                            {
                                 //string value is not convertable to a double. 
                                 this.HasError = true;
-                            } 
+                            }
                         }
-                        this.value = value;
+                        this.value = valuein;
                         break;
                     case "choice":
-                        List<string> keys = this.Choices().ToList<string>();
-                        if (keys.Contains(value, StringComparer.OrdinalIgnoreCase))
-                        { this.HasError = false; }
+                        List<string> keys = this.Choices().ToList();
+                        if (keys.Contains(valuein, StringComparer.OrdinalIgnoreCase))
+                        {
+                            this.HasError = false;
+                        }
                         else
-                        { this.HasError = true; }
-                        this.value = value;
+                        {
+                            this.HasError = true;
+                        }
+                        this.value = valuein;
                         break;
 
                     case "object-list":
@@ -158,8 +172,8 @@ namespace EnergyPlusLib.DataModel.IDF
                         //AutoRDD are output variables that are identified only from the result file. They are not present in the IDD so they are ignored for now. 
                         if (!listname.Contains("autoRDD"))
                         {
-                            List<string> names = this.Choices().ToList<string>();
-                            if (value != null && names.Contains(value, StringComparer.OrdinalIgnoreCase))
+                            List<string> names = this.Choices().ToList();
+                            if (valuein != null && names.Contains(valuein, StringComparer.OrdinalIgnoreCase))
                             {
                                 this.HasError = false;
                             }
@@ -168,57 +182,68 @@ namespace EnergyPlusLib.DataModel.IDF
                                 this.HasError = true;
                             }
                         }
-                        this.value = value;
+                        this.value = valuein;
                         break;
 
                     case "alpha":
                     default:
-                        this.value = value;
+                        this.value = valuein;
                         break;
                 }
             }
-            
+
             return this.HasError;
         }
 
 
         //To-Do
         public string FieldName()
-        { return Field.Name(); }
+        {
+            return this.Field.Name();
+        }
+
         public string FieldType()
-        { return Field.Type(); }
+        {
+            return this.Field.Type();
+        }
+
         public IList<string> Choices()
         {
             IList<string> names = new List<string>();
             switch (this.FieldType())
-            {   
+            {
                 case "object-list":
-                    names = idf.GetFieldListArgumentNames(this.Field.ObjectList());
+                    names = this.idf.GetFieldListArgumentNames(this.Field.ObjectList());
                     break;
                 case "choice":
-                    names = Field.Keys().ToList<string>();
+                    names = this.Field.Keys().ToList();
                     break;
                 default:
                     break;
             }
             return names;
         }
-            
-            
-            
+
+
         //public double MaxValue();
         //public double MinValue();
         public bool IsRequired()
-        { return Field.IsRequiredField(); }
+        {
+            return this.Field.IsRequiredField();
+        }
+
         public IList<string> Notes()
-        { return Field.Notes(); }
+        {
+            return this.Field.Notes();
+        }
+
         //public bool HasError();
 
-
-
         #endregion
+
         #region Constructor
-        public IDFArgument(IDFDatabase idf,  IDDField field, string Value)
+
+        public IDFArgument(IDFDatabase idf, IDDField field, string Value)
         {
             this.idf = idf;
             this.Field = field;
@@ -226,7 +251,5 @@ namespace EnergyPlusLib.DataModel.IDF
         }
 
         #endregion
-
-
     }
 }
