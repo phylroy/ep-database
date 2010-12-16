@@ -27,79 +27,18 @@ namespace EnergyPlus
             idf.EnergyPlusRootFolder = @"C:\EnergyPlusV6-0-0\";
             idf.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
             string test =
-                @"  Schedule:Day:List,
-    ListScheduleExample,     
-    Any Number,              
-    No,                      
-    60,                      
-    1,                       
-    2,                       
-    3,                       
-    4,                       
-    5,                       
-    6,                       
-    7,                       
-    8,                       
-    9,                       
-    10,                      
-    11,                      
-    12,                      
-    13,                      
-    14,                      
-    15,                      
-    16,                      
-    17,                      
-    18,                      
-    19,                      
-    20,                      
-    21,                      
-    22,                      
-    23,                      
-    24;                      
-";
-
-            string result =
-                @"  Schedule:Day:List,
-    ListScheduleExample,     
-    Any Number,              
-    No,                      
-    60,                      
-    1,                       
-    2,                       
-    3,                       
-    4,                       
-    5,                       
-    6,                       
-    7,                       
-    8,                       
-    9,                       
-    10,                      
-    11,                      
-    12,                      
-    13,                      
-    14,                      
-    15,                      
-    16,                      
-    17,                      
-    18,                      
-    19,                      
-    20,                      
-    21,                      
-    22,                      
-    23,                      
-    24;                      
-";
+                @"BUILDINGSURFACE:DETAILED,ZN001:WALL001,WALL,R13WALL,MAIN ZONE,OUTDOORS,,SUNEXPOSED,WINDEXPOSED,0.5000000,4,0,0,4.572000,0,0,0,15.24000,0,0,15.24000,0,4.572000;";
 
 
-            List<string> test2 = idf.CleanCommandStrings(Regex.Split(test, "\r\n")).ToList();
-            IDFCommand command = idf.GetCommandFromTextString(test2.FirstOrDefault());
-            string test3 = command.ToIDFString().Trim();
-            bool test4 = ( result.Trim() == command.ToIDFString().Trim());
+            string expectedresult =
+                @"COIL:COOLING:WATER,MAIN COOLING COIL 1,COOLINGCOILAVAILSCHED,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,MAIN COOLING COIL 1 WATER INLET NODE,MAIN COOLING COIL 1 WATER OUTLET NODE,MIXED AIR NODE 1,MAIN COOLING COIL 1 OUTLET NODE,;";                      
+
+            bool IsMatched = idf.TestCommand(test, expectedresult);
 
 
 
 
-            Program.RunFilesInFolder(@"C:\EnergyPlusV6-0-0\ExampleFiles\testing");
+            Program.RunFilesInFolder(@"C:\EnergyPlusV6-0-0\ExampleFiles\errors\MATERIALPROPERTYGLAZINGSPECTRALDATA");
 
         }
 
@@ -117,11 +56,11 @@ namespace EnergyPlus
                 idf.EnergyPlusRootFolder = @"C:\EnergyPlusV6-0-0\";
                 idf.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
                 idf.LoadIDFFile(fi.FullName);
-                idf.ChangeSimulationControl();
-                idf.ChangeSimulationPeriod(1, 1, 1, 2);
-                idf.DeleteCommands(@"Site:Location");
+                //idf.ChangeSimulationControl();
+                //idf.ChangeSimulationPeriod(1, 1, 1, 2);
+                //idf.DeleteCommands(@"Site:Location");
                 //idf.AddSQLiteOutput();
-                idf.ProcessEnergyPlusSimulation();
+                //idf.ProcessEnergyPlusSimulation();
             }
 
         }

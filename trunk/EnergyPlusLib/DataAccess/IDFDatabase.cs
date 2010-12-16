@@ -19,7 +19,7 @@ namespace EnergyPlusLib.DataAccess
         /// <summary>
         /// Place to store error involving this command. 
         /// </summary>
-        public List<List<string>> ErrorList = new List<List<string>>();
+        public List<string> ErrorList = new List<string>();
 
 
         /// <summary>
@@ -159,12 +159,9 @@ namespace EnergyPlusLib.DataAccess
             if (ErrorList.Count()>0)
             {
                 StreamWriter readin_warnings = new StreamWriter(sIDFFileName+".readwarnings");
-                foreach (List<string> errors in this.ErrorList)
+                foreach (string error in this.ErrorList)
                 {
-                    foreach(string error in errors)
-                    {
                         readin_warnings.WriteLine(error);
-                    }
                 }
                 readin_warnings.Close();
             }
@@ -245,6 +242,9 @@ namespace EnergyPlusLib.DataAccess
             //remove name from List.
             items.RemoveAt(0);
 
+            bool MisMatchFound = false; 
+
+
             //some values arguments are trailing optional. So to account for that. set the following to what is greater. 
             int limit = items.Count() < object_type.RegularFields.Count()
                             ? items.Count()
@@ -255,10 +255,67 @@ namespace EnergyPlusLib.DataAccess
                 new_command.RegularArguments[itemcounter].Value = items[itemcounter];
             }
 
+
+            if (limit < Convert.ToInt32(object_type.MinimumFields()) && object_type.NumberOfExtensibleFields == 0)
+            {
+                for (int emptyfieldcounter = limit; emptyfieldcounter < Convert.ToInt32(object_type.MinimumFields()); emptyfieldcounter++)
+                {
+                    if (object_type.RegularFields[emptyfieldcounter].Default() != null)
+                    {
+                        new_command.RegularArguments[emptyfieldcounter].Value = object_type.RegularFields[emptyfieldcounter].Default();
+                    }
+                    else
+                    {
+                        new_command.RegularArguments[emptyfieldcounter].Value = null;
+                    }
+
+                }
+            }
+
+
+
+            //Test that the if the required number of field is defined and that it is >= the number of fields present. Otherwise add error. 
+
+            if (object_type.MinimumFields() != null && items.Count() < Convert.ToInt32(object_type.MinimumFields()) )
+            {
+
+                string message = "Warning:In Command " + object_type.Name + " = " + new_command.GetName() + "\r\n";
+                message += "\tCommand has " + items.Count() + " when IDD requires " + object_type.MinimumFields() + "\r\n";
+                this.ErrorList.Add(message);
+
+
+            }
+
+
+
+
+
             if (object_type.NumberOfExtensibleFields > 0)
             {
                 //remove regular argument items from List. 
                 items.RemoveRange(0, object_type.RegularFields.Count());
+
+                if (items.Count % object_type.NumberOfExtensibleFields != 0 && object_type.IsUniqueObject() == false)
+                {
+                    string message = "Warning:In Command " + object_type.Name + " = " + new_command.GetName() + "\r\n";
+                    message += "\tCommand has extensible items of" + items.Count() +
+                               " when IDD requires that extensibles be multiples of " +
+                               object_type.NumberOfExtensibleFields + "\r\n";
+                    this.ErrorList.Add(message);
+
+                }
+
+                if ( (items.Count % object_type.NumberOfExtensibleFields != 0) && ( object_type.IsUniqueObject() ) )
+                {
+                    string message = "Warning:In Command " + object_type.Name + "\r\n";
+                    message += "\tCommand has extensible items of" + items.Count() +
+                               " when IDD requires that extensibles be multiples of " +
+                               object_type.NumberOfExtensibleFields + "\r\n";
+                    this.ErrorList.Add(message);
+
+                }
+
+
                 //Clear existing sets if any. 
                 new_command.ExtensibleSetArguments.Clear();
                 for (int itemcounter = 0;
@@ -278,21 +335,30 @@ namespace EnergyPlusLib.DataAccess
                         }
                         catch (ArgumentOutOfRangeException)
                         {
-                            value = "";
+                            if (object_type.ExtensibleFields[fieldcounter].Default() != null)
+                            {
+                                value = object_type.ExtensibleFields[fieldcounter].Default();
+                            }
+                            else
+                            {
+                             value = null;   
+                            }
+                            
+
                         }
 
                         ArgumentList.Add(new IDFArgument(this, object_type.ExtensibleFields[fieldcounter], value));
                     }
+
+
+
                     new_command.ExtensibleSetArguments.Add(ArgumentList);
                 }
             }
-            //test to see if they are the same. 
-            string new_command_string = new_command.ToIDFStringTerse().ToUpper().Trim();
-            string input_string_to_upper = inputstring.ToUpper() +";";
-            if (input_string_to_upper != new_command_string)
+
+            if (inputstring.ToUpper() + ";" != new_command.ToIDFStringTerse().ToUpper().Trim() )
             {
-                List<string> error = new List<string>();
-                error.AddRange(new string[] { "Read In Mismatch", input_string_to_upper, new_command_string });
+                string error = ("Read In Mismatch\r\n" + "\t" + inputstring.ToUpper() + ";" + "\r\n" + "\t" + new_command.ToIDFStringTerse().ToUpper().Trim() + "\r\n");
                 this.ErrorList.Add(error);
             }
                 
@@ -511,6 +577,16 @@ namespace EnergyPlusLib.DataAccess
             //Return to the start directory. 
             Directory.SetCurrentDirectory(startdirectory);
             return EPSuccessful;
+        }
+
+        public bool TestCommand(string testin, string expectedresult)
+        {
+
+            List<string> test = this.CleanCommandStrings(Regex.Split(testin, "\r\n")).ToList();
+            IDFCommand command = this.GetCommandFromTextString(test.FirstOrDefault());
+            string test3 = command.ToIDFString().Trim();
+            bool test4 = (expectedresult.Trim() == command.ToIDFString().Trim());
+            return test4;
         }
 
         #endregion
