@@ -1,0 +1,15 @@
+C:\ep-database\EplusTestWPF1\bin\Debug\EplusTestWPF1.exe
+C:\ep-database\EplusTestWPF1\bin\Debug\EplusTestWPF1.pdb
+C:\ep-database\EplusTestWPF1\bin\Debug\EnergyPlusLib.dll
+C:\ep-database\EplusTestWPF1\bin\Debug\EnergyPlusLib.pdb
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\MainWindow.baml
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\MainWindow.g.cs
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\App.g.cs
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\EplusTestWPF1_MarkupCompile.cache
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\EplusTestWPF1.g.resources
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\EplusTestWPF1.Properties.Resources.resources
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\GenerateResource.read.1.tlog
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\EplusTestWPF1.exe
+C:\ep-database\EplusTestWPF1\obj\x86\Debug\EplusTestWPF1.pdb
