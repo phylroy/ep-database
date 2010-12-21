@@ -29,6 +29,7 @@ namespace EnergyPlusLib.DataAccess
 
         public Dictionary<string, List<IDDField>> IDDObjectLists = new Dictionary<string, List<IDDField>>();
         public IList<IDDObject> IDDObjects;
+        public Dictionary<string, List<IDDObject>> IDDGroupObjectLists;
 
         #endregion
 
@@ -216,6 +217,46 @@ namespace EnergyPlusLib.DataAccess
                                   from field in object1.RegularFields
                                   select field.UpdateRelationships()
                 ;
+
+            this.CreateGroups();
+
+        }
+
+        public IList<string> GetGroups()
+        {
+            return this.IDDGroupObjectLists.Keys.ToList<string>(); ;
+        }
+
+        public IList<IDDObject> GetObjectsInGroup(string groupname)
+        {
+            groupname = groupname.Trim().ToUpper();
+
+            List<IDDObject> objects = (
+                from object1 in IDDObjects
+                where object1.Group.ToUpper() == groupname
+                select object1).Distinct<IDDObject>().ToList<IDDObject>();
+            return objects; 
+        }
+
+        private void CreateGroups()
+        {
+
+            this.IDDGroupObjectLists = new Dictionary<string, List<IDDObject>>();
+            List<string> groups = (
+                from object1 in IDDObjects
+                select object1.Group).Distinct<string>().ToList<string>();
+
+            foreach (string group1 in groups)
+            {
+
+                List<IDDObject> objects= (
+                    from object1 in this.IDDObjects
+                    where object1.Group == group1
+                    select object1).Distinct<IDDObject>().ToList<IDDObject>();
+                IDDGroupObjectLists.Add(group1,objects);
+
+            }
+
         }
 
         #endregion

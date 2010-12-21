@@ -21,7 +21,6 @@ namespace EnergyPlusLib.DataAccess
         /// </summary>
         public List<string> ErrorList = new List<string>();
 
-
         /// <summary>
         /// List container containing all the Commands in the Building. 
         /// </summary>
@@ -30,7 +29,7 @@ namespace EnergyPlusLib.DataAccess
         /// <summary>
         /// idd provides access to the idd class singleton.
         /// </summary>
-        private readonly IDDDataBase idd = IDDDataBase.GetInstance();
+        public readonly IDDDataBase idd = IDDDataBase.GetInstance();
 
         /// <summary>
         ///  The current IDF file name that was last loaded from or saved to. 
@@ -494,6 +493,17 @@ namespace EnergyPlusLib.DataAccess
             return objects;
         }
 
+
+        public IList<IDFCommand> FindCommandsWithFieldValuePair(string FieldName, string FieldValue)
+        {
+            List<IDFCommand> objects = (from command in this.IDFCommands
+                                        where
+                                            command.DoesArgumentExist(FieldName) &&
+                                            command.GetArgument(FieldName).Value == FieldValue
+                                        select command).ToList();
+            return objects;
+        }
+
         public IList<IDFCommand> FindCommandsWithRangeErrors()
         {
             this.UpdateAllObjectLists();
@@ -506,6 +516,15 @@ namespace EnergyPlusLib.DataAccess
                 }
             }
             return Commands;
+        }
+
+        public IList<IDFCommand> FindCommandsOfGroup(string groupin)
+        {
+            List<IDFCommand> commands = (from command in IDFCommands
+                                         where command.Object.Group == groupin
+                                         select command).ToList<IDFCommand>();
+            return commands;
+
         }
 
         public bool ProcessEnergyPlusSimulation()
@@ -588,6 +607,14 @@ namespace EnergyPlusLib.DataAccess
             bool test4 = (expectedresult.Trim() == command.ToIDFString().Trim());
             return test4;
         }
+
+
+
+
+
+
+
+
 
         #endregion
     }

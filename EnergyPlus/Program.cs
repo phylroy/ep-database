@@ -8,7 +8,6 @@ using System.Data;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using EnergyPlusLib;
-using gbXMLLib;
 using EnergyPlusLib.DataAccess;
 using EnergyPlusLib.DataModel.IDF; 
 
