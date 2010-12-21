@@ -1,0 +1,16 @@
+﻿<Window x:Class="EplusTestWPF1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:advanced="clr-namespace:EnergyPlusLib.ViewModel;assembly=EnergyPlusLib"
+        Title="MainWindow" Height="350" Width="525">
+    <Grid>
+        <TabControl Margin="8">
+
+
+            <TabItem Header="EnvelopeTree">
+                <advanced:EnvelopeTreeControl />
+            </TabItem>
+        </TabControl>
+
+    </Grid>
+</Window>
