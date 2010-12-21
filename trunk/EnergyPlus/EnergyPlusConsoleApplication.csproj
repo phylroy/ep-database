@@ -89,10 +89,6 @@
       <Project>{654C9538-5233-4E92-A3EE-1E3685032C2E}</Project>
       <Name>EnergyPlusLib</Name>
     </ProjectReference>
-    <ProjectReference Include="..\gbXMLLib\gbXMLLib.csproj">
-      <Project>{AA8AF931-D455-4696-8EA4-9B53D271F91A}</Project>
-      <Name>gbXMLLib</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
