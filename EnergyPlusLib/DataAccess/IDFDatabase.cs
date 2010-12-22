@@ -365,6 +365,13 @@ namespace EnergyPlusLib.DataAccess
             return new_command;
         }
 
+
+
+        /// <summary>
+        /// Returns all Commands which match the IDDObject name type in the IDFCommands list. 
+        /// </summary>
+        /// <param name="ObjectName">The string iddobject name.</param>
+        /// <returns>List of IDFCommands whos obmatching the Object name. </returns>
         public IList<IDFCommand> FindCommandsFromObjectName(string ObjectName)
         {
             List<IDFCommand> commands = (from command in this.IDFCommands
@@ -600,22 +607,12 @@ namespace EnergyPlusLib.DataAccess
 
         public bool TestCommand(string testin, string expectedresult)
         {
-
             List<string> test = this.CleanCommandStrings(Regex.Split(testin, "\r\n")).ToList();
             IDFCommand command = this.GetCommandFromTextString(test.FirstOrDefault());
             string test3 = command.ToIDFString().Trim();
             bool test4 = (expectedresult.Trim() == command.ToIDFString().Trim());
             return test4;
         }
-
-
-
-
-
-
-
-
-
         #endregion
     }
 }

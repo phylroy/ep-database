@@ -26,16 +26,28 @@ namespace EnergyPlusLib.DataAccess
         #endregion
 
         #region Properties
-
+        /// <summary>
+        /// Contains the Dictionary with the key being the object-list name and value being the list of fields associated.
+        /// </summary>
         public Dictionary<string, List<IDDField>> IDDObjectLists = new Dictionary<string, List<IDDField>>();
+        /// <summary>
+        /// List containing all Dictionary Objects. 
+        /// </summary>
         public IList<IDDObject> IDDObjects;
+        /// <summary>
+        /// Contains the Dictionary with the key being the group name and the value being the Objects belonging to the group. 
+        /// </summary>
         public Dictionary<string, List<IDDObject>> IDDGroupObjectLists;
 
         #endregion
 
         #region IDD Methods
 
-        public Dictionary<string, List<IDDField>> GetObjectList()
+        /// <summary>
+        /// Creates the Objectlist and field references. 
+        /// </summary>
+        /// <returns></returns>
+        private void GetObjectList()
         {
             var q = from object1 in this.IDDObjects.AsEnumerable()
                     from field1 in object1.FlattenedFieldList()
@@ -56,9 +68,15 @@ namespace EnergyPlusLib.DataAccess
                 }
                 this.IDDObjectLists[x.val].Add(x.fld);
             }
-            return this.IDDObjectLists;
+
         }
 
+        /// <summary>
+        /// Return the IDDObject of by the string name passed as an argument.n For example passing "zone" will 
+        /// return the zonal IDDObject.  
+        /// </summary>
+        /// <param name="name"> String name of IDDObject</param>
+        /// <returns>The IDDObject from the given string name.</returns>
         public IDDObject GetObject(string name)
         {
             IEnumerable<IDDObject> q = from object1 in this.IDDObjects
@@ -67,6 +85,11 @@ namespace EnergyPlusLib.DataAccess
             return q.FirstOrDefault();
         }
 
+
+        /// <summary>
+        /// Loads the IDD file and creates all IDDObjects defined in the idd file. 
+        /// </summary>
+        /// <param name="path">The full path of the idd file.</param>
         public void LoadIDDFile(string path)
         {
             this.IDDObjects = new List<IDDObject>();
@@ -222,11 +245,20 @@ namespace EnergyPlusLib.DataAccess
 
         }
 
+        /// <summary>
+        /// Returns a list of all the groups defined in the idd file. 
+        /// </summary>
+        /// <returns></returns>
         public IList<string> GetGroups()
         {
             return this.IDDGroupObjectLists.Keys.ToList<string>(); ;
         }
 
+        /// <summary>
+        /// Returns all the IDDObjects belonging to a group.
+        /// </summary>
+        /// <param name="groupname">The string name of a group.</param>
+        /// <returns>The IDDObjects which are a part of the group. </returns>
         public IList<IDDObject> GetObjectsInGroup(string groupname)
         {
             groupname = groupname.Trim().ToUpper();
@@ -238,6 +270,9 @@ namespace EnergyPlusLib.DataAccess
             return objects; 
         }
 
+        /// <summary>
+        /// Private method used to populate the dictionary of the groups and children IDDObjects. 
+        /// </summary>
         private void CreateGroups()
         {
 

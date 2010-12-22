@@ -9,7 +9,11 @@ using EnergyPlusLib.DataAccess;
 namespace EnergyPlusLib.ViewModels.GroupViewModel
 {
 
+    public class GroupModelView
+    {
+        public List<
 
+    }
 
 
 
