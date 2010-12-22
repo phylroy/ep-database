@@ -151,7 +151,7 @@ namespace EnergyPlusLib.DataAccess
             IList<string> CommandStrings = this.CleanCommandStrings(idfListString);
             foreach (string commandstring in CommandStrings)
             {
-                IDFCommand command = this.GetCommandFromTextString(commandstring);
+                IDFCommand command = this.CreateCommandFromTextString(commandstring);
 
                 this.IDFCommands.Add(command);
             }
@@ -227,7 +227,7 @@ namespace EnergyPlusLib.DataAccess
         /// </summary>
         /// <param name="inputstring">string data of a command, no comments or spaces.</param>
         /// <returns>A command object.</returns>
-        public IDFCommand GetCommandFromTextString(string inputstring)
+        public IDFCommand CreateCommandFromTextString(string inputstring)
         {
             IDFCommand new_command;
             //remove ; 
@@ -240,8 +240,6 @@ namespace EnergyPlusLib.DataAccess
             new_command = new IDFCommand(this, object_type);
             //remove name from List.
             items.RemoveAt(0);
-
-            bool MisMatchFound = false; 
 
 
             //some values arguments are trailing optional. So to account for that. set the following to what is greater. 
@@ -366,20 +364,11 @@ namespace EnergyPlusLib.DataAccess
         }
 
 
-
         /// <summary>
-        /// Returns all Commands which match the IDDObject name type in the IDFCommands list. 
+        /// Save IDF format file of building to the passed full path, and sets the current path variable "CurrentIDFFilePath"
+        /// to the passed path. 
         /// </summary>
-        /// <param name="ObjectName">The string iddobject name.</param>
-        /// <returns>List of IDFCommands whos obmatching the Object name. </returns>
-        public IList<IDFCommand> FindCommandsFromObjectName(string ObjectName)
-        {
-            List<IDFCommand> commands = (from command in this.IDFCommands
-                                         where command.Object.Name == ObjectName
-                                         select command).ToList();
-            return commands;
-        }
-
+        /// <param name="path"> full path of idf file to be saved.</param>
         public void SaveIDFFile(string path)
         {
             TextWriter idffile = new StreamWriter(path);
@@ -403,15 +392,23 @@ namespace EnergyPlusLib.DataAccess
 
         }
 
+        /// <summary>
+        /// Deletes all commands that are of type passed in ObjectName string.
+        /// </summary>
+        /// <param name="sObjectName">Name of IDD Object.</param>
         public void DeleteCommands(string sObjectName)
         {
-            foreach (IDFCommand cmd in this.FindCommandsFromObjectName(sObjectName))
+            foreach (IDFCommand cmd in this.FindAllCommandsFromObjectName(sObjectName))
             {
                 this.IDFCommands.Remove(cmd);
             }
             this.UpdateAllObjectLists();
         }
 
+        /// <summary>
+        /// Deletes IDFCommands from the IDFCommand Container.
+        /// </summary>
+        /// <param name="Commands">List of IDFCommands to be removed.</param>
         public void DeleteCommands(IList<IDFCommand> Commands)
         {
             foreach (IDFCommand cmd in Commands)
@@ -420,7 +417,6 @@ namespace EnergyPlusLib.DataAccess
             }
             this.UpdateAllObjectLists();
         }
-
 
         //This should be the only way a command gets deleted.
         public void DeleteCommand(IDFCommand command)
@@ -433,6 +429,14 @@ namespace EnergyPlusLib.DataAccess
             this.UpdateAllObjectLists();
         }
 
+        /// <summary>
+        /// Deletes all simulation periods and add a new simulation period command to the 
+        /// IDFCommands.
+        /// </summary>
+        /// <param name="startmonth">Start Month of simulation.</param>
+        /// <param name="startday">Start Day of simulation.</param>
+        /// <param name="endmonth">End Month of simulation</param>
+        /// <param name="endday">End Day of simulation.</param>
         public void ChangeSimulationPeriod(int startmonth, int startday, int endmonth, int endday)
         {
             //removes any exisiting entries of simulation control or Runperiod. 
@@ -440,36 +444,46 @@ namespace EnergyPlusLib.DataAccess
             this.DeleteCommands("RunPeriod");
             
             this.IDFCommands.Add(
-                this.GetCommandFromTextString(
+                this.CreateCommandFromTextString(
                     String.Format(
                         "RunPeriod,FullYear,{0},{1},{2},{3},UseWeatherFile,No,No,No,No,Yes,1;",
                         startmonth, startday, endmonth, endday)
                     ));
         }
 
+        /// <summary>
+        /// Turns on all simulation control options. 
+        /// </summary>
         public void ChangeSimulationControl()
         {
             this.DeleteCommands("SimulationControl");
-            this.IDFCommands.Add(this.GetCommandFromTextString("SimulationControl,Yes,Yes,Yes,Yes,Yes;"));
+            this.IDFCommands.Add(this.CreateCommandFromTextString("SimulationControl,Yes,Yes,Yes,Yes,Yes;"));
         }
 
+        /// <summary>
+        /// Insert IDFCommand to enable SQLite output.
+        /// </summary>
         public void AddSQLiteOutput()
         {
             this.DeleteCommands("Output:SQLite");
-            this.IDFCommands.Add(this.GetCommandFromTextString("Output:SQLite, SimpleAndTabular;"));   
+            this.IDFCommands.Add(this.CreateCommandFromTextString("Output:SQLite, SimpleAndTabular;"));   
 
         }
 
+        /// <summary>
+        /// Adds command to change aspect ratio of building. This is the Geometry Transform Object. 
+        /// </summary>
+        /// <param name="X">X axis scale</param>
+        /// <param name="Y">Y axis scale</param>
         public void ChangeAspectRatioXY(double X, double Y)
         {
             //Remove Geometry Transform if present. 
             this.DeleteCommands("GeometryTransform");
             this.IDFCommands.Add(
-                this.GetCommandFromTextString(String.Format("GeometryTransform,XY,{0},{1}", X, Y))
+                this.CreateCommandFromTextString(String.Format("GeometryTransform,XY,{0},{1}", X, Y))
                 );
         }
-
-        public IList<IDFCommand> FindAllCommandsOfObjectType(IDDObject object1)
+        public IList<IDFCommand>    FindAllCommandsOfObjectType(IDDObject object1)
         {
             List<IDFCommand> objects = (
                                            from command in this.IDFCommands
@@ -477,9 +491,19 @@ namespace EnergyPlusLib.DataAccess
                                            select command).ToList();
             return objects;
         }
-
-
-        public IList<IDFArgument> FindAllArgumentsOfFieldType(IDDField field1)
+        /// <summary>
+        /// Returns all Commands which match the IDDObject name type in the IDFCommands list. 
+        /// </summary>
+        /// <param name="ObjectName">The string iddobject name.</param>
+        /// <returns>List of IDFCommands whos obmatching the Object name. </returns>
+        public IList<IDFCommand>    FindAllCommandsFromObjectName(string ObjectName)
+        {
+            List<IDFCommand> commands = (from command in this.IDFCommands
+                                         where command.Object.Name == ObjectName
+                                         select command).ToList();
+            return commands;
+        }
+        public IList<IDFArgument>   FindAllArgumentsOfFieldType(IDDField field1)
         {
             List<IDFArgument> args = (
                                          from command in this.IDFCommands
@@ -488,20 +512,16 @@ namespace EnergyPlusLib.DataAccess
                                          select argument).Distinct().ToList();
             return args.ToList();
         }
-
-
-        public IList<IDFCommand> FindCommands(string ObjectName, string FieldName, string FieldValue)
+        public IList<IDFCommand>    FindAllCommands(string ObjectName, string FieldName, string FieldValue)
         {
-            List<IDFCommand> objects = (from surface in this.FindCommandsFromObjectName(ObjectName)
+            List<IDFCommand> objects = (from surface in this.FindAllCommandsFromObjectName(ObjectName)
                                         where
                                             surface.DoesArgumentExist(FieldName) &&
                                             surface.GetArgument(FieldName).Value == FieldValue
                                         select surface).ToList();
             return objects;
         }
-
-
-        public IList<IDFCommand> FindCommandsWithFieldValuePair(string FieldName, string FieldValue)
+        public IList<IDFCommand>    FindAllCommandsWithFieldValuePair(string FieldName, string FieldValue)
         {
             List<IDFCommand> objects = (from command in this.IDFCommands
                                         where
@@ -510,8 +530,7 @@ namespace EnergyPlusLib.DataAccess
                                         select command).ToList();
             return objects;
         }
-
-        public IList<IDFCommand> FindCommandsWithRangeErrors()
+        public IList<IDFCommand>    FindAllCommandsWithRangeErrors()
         {
             this.UpdateAllObjectLists();
             IList<IDFCommand> Commands = new List<IDFCommand>();
@@ -524,8 +543,7 @@ namespace EnergyPlusLib.DataAccess
             }
             return Commands;
         }
-
-        public IList<IDFCommand> FindCommandsOfGroup(string groupin)
+        public IList<IDFCommand>    FindAllCommandsOfGroup(string groupin)
         {
             List<IDFCommand> commands = (from command in IDFCommands
                                          where command.Object.Group == groupin
@@ -533,7 +551,6 @@ namespace EnergyPlusLib.DataAccess
             return commands;
 
         }
-
         public bool ProcessEnergyPlusSimulation()
         {
             bool DeleteFolder = false;
@@ -604,11 +621,10 @@ namespace EnergyPlusLib.DataAccess
             Directory.SetCurrentDirectory(startdirectory);
             return EPSuccessful;
         }
-
         public bool TestCommand(string testin, string expectedresult)
         {
             List<string> test = this.CleanCommandStrings(Regex.Split(testin, "\r\n")).ToList();
-            IDFCommand command = this.GetCommandFromTextString(test.FirstOrDefault());
+            IDFCommand command = this.CreateCommandFromTextString(test.FirstOrDefault());
             string test3 = command.ToIDFString().Trim();
             bool test4 = (expectedresult.Trim() == command.ToIDFString().Trim());
             return test4;
