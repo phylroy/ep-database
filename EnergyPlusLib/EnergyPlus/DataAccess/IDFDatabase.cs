@@ -41,7 +41,6 @@ namespace EnergyPlusLib.DataAccess
         /// </summary>
         public List<string> OrigIDFFileStringsNoComments;
 
-
         /// <summary>
         /// Path to the energy plus root folder. "c:\energyplus6.0\" for example. 
         /// </summary>
@@ -56,8 +55,6 @@ namespace EnergyPlusLib.DataAccess
         /// The full path of the weather file used for the simulation. 
         /// </summary>
         public string WeatherFilePath;
-
-
 
         /// <summary>
         /// This method parses all the commands and arguments in the building model and creates the 
