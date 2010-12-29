@@ -486,7 +486,7 @@ namespace EnergyPlusLib.DataAccess
         #region Methods to Search / Find Commands and Arguments.
         public IList<IDFCommand>    FindCommandsOfObjectType(IList<IDFCommand> Commands, IDDObject objecttype)
         {
-            List<IDFCommand> objects = (
+            var objects = (
                                            from command in Commands
                                            where command.Object == objecttype
                                            select command).ToList();

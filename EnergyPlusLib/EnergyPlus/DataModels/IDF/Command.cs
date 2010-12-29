@@ -238,7 +238,6 @@ namespace EnergyPlusLib.DataModel.IDF
             return this.GetArgument(@"Name").Value;
         }
 
-
         public IDFArgument GetArgument(String fieldname)
         {
             IDFArgument Argument = (from argument in this.FlattenedArgumentList()
@@ -246,7 +245,6 @@ namespace EnergyPlusLib.DataModel.IDF
                                     select argument).FirstOrDefault();
             return Argument;
         }
-
 
         public bool DoesArgumentExist(String fieldname)
         {
@@ -283,6 +281,15 @@ namespace EnergyPlusLib.DataModel.IDF
             }
             ;
         }
+
+        public void FindParentCommandsOfType(string IDDObjectName)
+        {
+        }
+
+        public void FindChildrenCommandsOfTYpe(string IDDObjectName)
+        {
+        }
+
 
         #endregion
     }
