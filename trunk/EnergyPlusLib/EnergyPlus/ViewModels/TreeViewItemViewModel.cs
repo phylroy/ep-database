@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using EnergyPlusLib.DataModel.IDF;
-using EnergyPlusLib.DataAccess;
 
 namespace EnergyPlusLib.ViewModels
 {
