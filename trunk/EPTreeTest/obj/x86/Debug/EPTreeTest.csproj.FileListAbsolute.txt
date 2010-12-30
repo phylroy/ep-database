@@ -1,0 +1,15 @@
+C:\ep-database\EPTreeTest\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\ep-database\EPTreeTest\obj\x86\Debug\MainWindow.baml
+C:\ep-database\EPTreeTest\obj\x86\Debug\MainWindow.g.cs
+C:\ep-database\EPTreeTest\obj\x86\Debug\App.g.cs
+C:\ep-database\EPTreeTest\obj\x86\Debug\EPTreeTest_MarkupCompile.cache
+C:\ep-database\EPTreeTest\obj\x86\Debug\EPTreeTest.g.resources
+C:\ep-database\EPTreeTest\obj\x86\Debug\EPTreeTest.Properties.Resources.resources
+C:\ep-database\EPTreeTest\obj\x86\Debug\GenerateResource.read.1.tlog
+C:\ep-database\EPTreeTest\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\ep-database\EPTreeTest\bin\Debug\EPTreeTest.exe
+C:\ep-database\EPTreeTest\bin\Debug\EPTreeTest.pdb
+C:\ep-database\EPTreeTest\bin\Debug\EnergyPlusLib.dll
+C:\ep-database\EPTreeTest\bin\Debug\EnergyPlusLib.pdb
+C:\ep-database\EPTreeTest\obj\x86\Debug\EPTreeTest.exe
+C:\ep-database\EPTreeTest\obj\x86\Debug\EPTreeTest.pdb

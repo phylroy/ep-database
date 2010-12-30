@@ -1,0 +1,6 @@
+C:\ep-database\SuperEE4\obj\x86\Debug\ResolveAssemblyReference.cache
+C:\ep-database\SuperEE4\obj\x86\Debug\MainWindow.g.cs
+C:\ep-database\SuperEE4\obj\x86\Debug\App.g.cs
+C:\ep-database\SuperEE4\obj\x86\Debug\GeneratedInternalTypeHelper.g.cs
+C:\ep-database\SuperEE4\obj\x86\Debug\SuperEE4_MarkupCompile.cache
+C:\ep-database\SuperEE4\obj\x86\Debug\SuperEE4_MarkupCompile.lref
