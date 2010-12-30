@@ -1,0 +1,206 @@
+<Configuration>
+  <SettingsComponent>
+    <string />
+    <integer />
+    <boolean>
+      <setting name="SolutionAnalysisEnabled">False</setting>
+    </boolean>
+  </SettingsComponent>
+  <RecentFiles>
+    <RecentFiles>
+      <File id="3F69FAD3-1483-468C-B531-5248BC7661A8/d:Properties/f:AssemblyInfo.cs" caret="1394" fromTop="38" />
+      <File id="3F69FAD3-1483-468C-B531-5248BC7661A8/f:packages.config" caret="423" fromTop="10" />
+      <File id="3F69FAD3-1483-468C-B531-5248BC7661A8/f:Program.cs" caret="291" fromTop="15" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:GroupViewModel/f:GroupTreeUserControl.xaml" caret="420" fromTop="5" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:EnvelopeViewModel/f:EnvelopeTreeViewModel.cs" caret="1486" fromTop="8" />
+      <File id="412C4247-3736-4D42-A039-8EEA5F06C408/f:App.xaml.cs" caret="0" fromTop="0" />
+      <File id="412C4247-3736-4D42-A039-8EEA5F06C408/f:App.xaml" caret="0" fromTop="0" />
+      <File id="412C4247-3736-4D42-A039-8EEA5F06C408/f:MainWindow.xaml.cs" caret="204" fromTop="7" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:EnvelopeViewModel/f:EnvelopeTreeControl.xaml.cs" caret="823" fromTop="21" />
+      <File id="412C4247-3736-4D42-A039-8EEA5F06C408/f:MainWindow.xaml" caret="664" fromTop="5" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Field.cs" caret="106" fromTop="4" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:FieldSwitch.cs" caret="34" fromTop="0" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Group.cs" caret="34" fromTop="0" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDDDataBase.cs" caret="163" fromTop="7" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFCommandList.cs" caret="2673" fromTop="63" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Object.cs" caret="5556" fromTop="165" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:ObjectSwitch.cs" caret="555" fromTop="8" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFDatabase.cs" caret="675" fromTop="14" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:CommandsViewModel/f:IDFCommandsViewModel.xaml.cs" caret="1152" fromTop="27" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:EnvelopeViewModel/f:EnvelopeTreeControl.xaml" caret="561" fromTop="0" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:CommandsViewModel/f:IDFCommandsViewModel.xaml" caret="570" fromTop="2" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Command.cs" caret="197" fromTop="10" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Argument.cs" caret="174" fromTop="8" />
+    </RecentFiles>
+    <RecentEdits>
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFDatabase.cs" caret="26942" fromTop="8" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFDatabase.cs" caret="26942" fromTop="18" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFDatabase.cs" caret="26942" fromTop="14" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFCommandList.cs" caret="2673" fromTop="6" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:CommandsViewModel/f:IDFCommandsViewModel.xaml.cs" caret="363" fromTop="10" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:CommandsViewModel/f:IDFCommandsViewModel.xaml.cs" caret="765" fromTop="23" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:CommandsViewModel/f:IDFCommandsViewModel.xaml.cs" caret="1132" fromTop="19" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:EnvelopeViewModel/f:EnvelopeTreeControl.xaml.cs" caret="948" fromTop="32" />
+      <File id="412C4247-3736-4D42-A039-8EEA5F06C408/f:MainWindow.xaml" caret="246" fromTop="3" />
+      <File id="412C4247-3736-4D42-A039-8EEA5F06C408/f:MainWindow.xaml" caret="725" fromTop="6" />
+      <File id="412C4247-3736-4D42-A039-8EEA5F06C408/f:MainWindow.xaml" caret="600" fromTop="1" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDDDataBase.cs" caret="163" fromTop="7" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Argument.cs" caret="106" fromTop="6" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Command.cs" caret="128" fromTop="6" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Field.cs" caret="106" fromTop="4" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:FieldSwitch.cs" caret="34" fromTop="0" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Group.cs" caret="34" fromTop="0" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFCommandList.cs" caret="2577" fromTop="5" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFCommandList.cs" caret="2673" fromTop="63" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFDatabase.cs" caret="26777" fromTop="9" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFDatabase.cs" caret="26942" fromTop="633" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Object.cs" caret="5556" fromTop="165" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:ObjectSwitch.cs" caret="23" fromTop="0" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:CommandsViewModel/f:IDFCommandsViewModel.xaml" caret="474" fromTop="3" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFDatabase.cs" caret="1054" fromTop="18" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:CommandsViewModel/f:IDFCommandsViewModel.xaml" caret="99" fromTop="1" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:IDFDatabase.cs" caret="689" fromTop="14" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/d:ViewModels/d:CommandsViewModel/f:IDFCommandsViewModel.xaml" caret="631" fromTop="3" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Command.cs" caret="377" fromTop="14" />
+      <File id="654C9538-5233-4E92-A3EE-1E3685032C2E/d:EnergyPlus/f:Argument.cs" caret="343" fromTop="13" />
+    </RecentEdits>
+  </RecentFiles>
+  <NAntValidationSettings>
+    <NAntPath value="" />
+  </NAntValidationSettings>
+  <UnitTestRunner>
+    <Providers />
+  </UnitTestRunner>
+  <UnitTestRunnerNUnit>
+    <NUnitInstallDir IsNull="False">
+    </NUnitInstallDir>
+    <UseAddins>Never</UseAddins>
+  </UnitTestRunnerNUnit>
+  <CompletionStatisticsManager>
+    <ItemStatistics item="Default">
+      <Item value="readonly" priority="0" />
+      <Item value="String`0" priority="3" />
+      <Item value="value" priority="1" />
+      <Item value="this" priority="6" />
+      <Item value="path" priority="0" />
+      <Item value="idf" priority="6" />
+      <Item value="true" priority="4" />
+      <Item value="comment" priority="2" />
+      <Item value="var" priority="1" />
+      <Item value="new" priority="4" />
+      <Item value="List" priority="9" />
+      <Item value="string" priority="19" />
+      <Item value="public" priority="10" />
+      <Item value="void" priority="4" />
+      <Item value="test2" priority="0" />
+      <Item value="command" priority="1" />
+      <Item value="bool" priority="5" />
+      <Item value="break" priority="1" />
+      <Item value="if" priority="5" />
+      <Item value="format" priority="1" />
+      <Item value="noComments" priority="1" />
+      <Item value="false" priority="3" />
+      <Item value="Terse" priority="0" />
+      <Item value="else" priority="1" />
+      <Item value="newline" priority="1" />
+      <Item value="fieldTerminator" priority="0" />
+      <Item value="return" priority="1" />
+      <Item value="CommandStrings" priority="0" />
+      <Item value="commandstring" priority="0" />
+      <Item value="throw" priority="0" />
+      <Item value="test" priority="1" />
+      <Item value="List&lt;List&lt;string&gt;&gt;" priority="0" />
+      <Item value="List&lt;string&gt;" priority="0" />
+      <Item value="error" priority="0" />
+      <Item value="inputstring" priority="1" />
+      <Item value="ErrorList" priority="0" />
+      <Item value="StreamWriter`0" priority="0" />
+      <Item value="StreamWriter" priority="0" />
+      <Item value="sIDFFileName" priority="0" />
+      <Item value="foreach" priority="1" />
+      <Item value="in" priority="1" />
+      <Item value="readin_warnings" priority="1" />
+      <Item value="TestCommand`0" priority="0" />
+      <Item value="test4" priority="0" />
+      <Item value="null" priority="0" />
+      <Item value="object_type" priority="0" />
+      <Item value="new_command" priority="0" />
+      <Item value="items" priority="1" />
+      <Item value="MisMatchFound" priority="0" />
+      <Item value="IList" priority="0" />
+      <Item value="IDFCommand`0" priority="1" />
+      <Item value="DataAccess" priority="0" />
+      <Item value="IDDDataBase`0" priority="1" />
+      <Item value="groupin" priority="0" />
+      <Item value="EnergyPlus.DataModels.IDF" priority="0" />
+      <Item value="EnergyPlus.DataModels" priority="0" />
+      <Item value="IDD" priority="0" />
+      <Item value="IDFCommands`0" priority="1" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:@System.String">
+      <Item value="IsNullOrEmpty`0" priority="2" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:EnergyPlusLib.DataAccess.IDFDatabase">
+      <Item value="CurrentIDFFilePath" priority="1" />
+      <Item value="ChangeSimulationPeriod`0" priority="0" />
+      <Item value="OrigIDFFileStringsNoComments" priority="0" />
+      <Item value="AddSQLiteOutput`0" priority="0" />
+      <Item value="DeleteCommands`0" priority="0" />
+      <Item value="CleanCommandStrings`0" priority="0" />
+      <Item value="ErrorList" priority="2" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:System.IO.TextWriter">
+      <Item value="Close`0" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:System.Collections.Generic.List`1">
+      <Item value="Add`0" priority="2" />
+      <Item value="FirstOrDefault`1" priority="0" />
+      <Item value="AddRange`0" priority="0" />
+      <Item value="Count" priority="1" />
+      <Item value="Count`1" priority="1" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:EnergyPlusLib.DataModel.IDF.IDFArgument">
+      <Item value="IsRequired`0" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:EnergyPlus.Program">
+      <Item value="RunFilesInFolder`0" priority="1" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:System.String">
+      <Item value="Split`0" priority="0" />
+      <Item value="Trim`0" priority="2" />
+      <Item value="ToUpper`0" priority="4" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:System.Collections.Generic.IList`1">
+      <Item value="ToList`1" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:EnergyPlusLib.DataModel.IDF.IDFCommand">
+      <Item value="ToIDFString`0" priority="0" />
+      <Item value="ToIDFStringTerse`0" priority="0" />
+      <Item value="GetName`0" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:System.IO.StreamWriter">
+      <Item value="WriteLine`0" priority="0" />
+      <Item value="Close`0" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:EnergyPlusLib.DataModel.IDD.IDDObject">
+      <Item value="MinimumFields`0" priority="0" />
+      <Item value="Name" priority="0" />
+      <Item value="IsUniqueObject`0" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:@System.Convert">
+      <Item value="ToInt32`0" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:System.Int32">
+      <Item value="ToString`0" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:EnergyPlusLib.DataModel.IDD.IDDField">
+      <Item value="Default`0" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:@EnergyPlusLib.DataAccess.IDDDataBase">
+      <Item value="GetInstance`0" priority="0" />
+    </ItemStatistics>
+    <ItemStatistics item="Qualified:EnergyPlusLib.EnergyPlus.DataAccess.IDFDatabase">
+      <Item value="IDFCommandList" priority="0" />
+    </ItemStatistics>
+  </CompletionStatisticsManager>
+</Configuration>

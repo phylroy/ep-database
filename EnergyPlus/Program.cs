@@ -8,12 +8,13 @@ using System.Data;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using EnergyPlusLib;
-using EnergyPlusLib.DataAccess;
-using EnergyPlusLib.DataModel.IDF; 
+using EnergyPlusLib.EnergyPlus;
 
 //to-do
-/*
- * 1. Create a Group Tree view. 
+
+/* 1. Add Iron Python
+ * 2. Create Pop up Grid view. 
+ * 1. CreateParent/Child/Connected Relationships.
  * 2. Create a grid view master detail. 
  * 3. Tie results SQL to IDFdata.  
  */ 

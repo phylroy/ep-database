@@ -1,0 +1,6 @@
+<Modules>
+  <Module PersistentId="654C9538-5233-4E92-A3EE-1E3685032C2E" ModuleId="EnergyPlusLib" />
+  <Module PersistentId="3F69FAD3-1483-468C-B531-5248BC7661A8" ModuleId="EnergyPlusConsoleApplication" />
+  <Module PersistentId="d:Miscellaneous Files" ModuleId="antlr.runtime" />
+  <Module PersistentId="412C4247-3736-4D42-A039-8EEA5F06C408" ModuleId="EplusTestWPF1" />
+</Modules>
