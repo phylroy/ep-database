@@ -4,8 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using EnergyPlusLib.DataModel.IDF;
-using EnergyPlusLib.DataAccess;
+using EnergyPlusLib.EnergyPlus;
 using EnergyPlusLib.ViewModels;
 
 namespace EnergyPlusLib.ViewModel
@@ -29,7 +28,7 @@ namespace EnergyPlusLib.ViewModel
 
         public EnvelopeTreeViewModel(IDFDatabase idf)
         {
-            IList<IDFCommand> zones = idf.FindCommandsFromObjectName(idf.IDFCommands , "Zone");
+            IList<IDFCommand> zones = idf.FindCommandsFromObjectName(idf.IDFCommandList , "Zone");
 
 
             _zones = new ReadOnlyCollection<ZoneEnvelopeViewModel>(
@@ -66,7 +65,7 @@ namespace EnergyPlusLib.ViewModel
 
             protected override void LoadChildren()
             {
-                List<IDFCommand> Surfaces = _idf.FindCommands(_idf.IDFCommands, "BuildingSurface:Detailed", "Zone Name", _zoneEnvelope.GetName() ).ToList<IDFCommand>();
+                List<IDFCommand> Surfaces = _idf.FindCommands(_idf.IDFCommandList, "BuildingSurface:Detailed", "Zone Name", _zoneEnvelope.GetName() ).ToList<IDFCommand>();
                 foreach (IDFCommand command in Surfaces)
                 {
                     base.Children.Add(new SurfaceEnvelopeViewModel(command, this, _idf));
