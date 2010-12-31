@@ -8,7 +8,12 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
         <DataGrid ItemsSource="{Binding IDFCommandList}" />
-        <TextBlock Text="{Binding IDFCommandList}" Height="28" HorizontalAlignment="Left" Margin="134,195,0,0" Name="label1" VerticalAlignment="Top" />
-        <TextBlock Text="hello" Height="23" HorizontalAlignment="Left" Margin="137,246,0,0" Name="textBlock1" VerticalAlignment="Top" />
+        <RichTextBox    Name="richTextBox1" FontStyle="Normal" FontFamily="Global Monospace">
+            <RichTextBox.Resources>
+                <Style TargetType="{x:Type Paragraph}">
+                    <Setter Property="Margin" Value="0"/>
+                </Style>
+            </RichTextBox.Resources>
+        </RichTextBox>
     </Grid>
 </UserControl>

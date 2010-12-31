@@ -6,34 +6,87 @@ namespace EnergyPlusLib.EnergyPlus
 {
     public class IDFArgument
     {
+        #region Constructor
+        public IDFArgument(IDFDatabase idf, IDDField field, string Value)
+        {
+            this._idf = idf;
+            this.Field = field;
+            this.Value = Value;
+        }
+        #endregion
+
+        #region Fields
+        private IDFDatabase _idf;
+        private String _value;
+        #endregion
+        
         #region Properties
-
-        public IDDField Field {set; get; }
-        public IDFDatabase idf { set; get; }
-        private string value { set; get; }
-        public bool HasError { set; get; }
-
-        public string Value
+        public readonly IDDField Field;
+        public String FieldName
+        {
+            get { return this.Field.Name(); }
+        }
+        public String FieldDataName
+        {
+            get { return this.Field.DataName; }
+        }
+        public String FieldUnits 
+        {
+            get { return this.Field.Units();}
+        }
+        public IList<String> FieldNotes
+        {
+            get { return this.Field.Notes(); }
+        }
+        public Boolean FieldIsRequired
+        {
+            get { return this.Field.IsRequiredField(); }
+        }
+        public IList<String> Choices
+        {
+            get
+            {
+                IList<string> names = new List<string>();
+                switch (this.FieldType)
+                {
+                    case "object-list":
+                        names = this._idf.GetFieldListArgumentNames(this.Field.ObjectList());
+                        break;
+                    case "choice":
+                        names = this.Field.Keys().ToList();
+                        break;
+                    default:
+                        break;
+                }
+                return names;
+            }
+        }
+        public Boolean HasValidationError { private set; get; }
+        public Boolean HasSimulationError { private set; get; }
+        public Boolean HasError { private set; get; }
+        public String Value
         {
             set
             {
-                this.value = value;
-                this.RangeCheckValue(value);
+                this._value = value;
+                this.HasValidationError = this.Validate(value);
                 this.UpdateObjectListReferences();
             }
 
-            get { return this.value; }
+            get { return this._value; }
         }
+        #endregion
 
+        #region Methods
         private void UpdateObjectListReferences()
         {
             foreach (string reference in this.Field.References())
             {
                 //using TrygetValue because it is faster. 
                 var ListOfArguments = new List<IDFArgument>();
-                if (false == this.idf.IDFObjectLists.TryGetValue(reference, out ListOfArguments))
+                if (false == this._idf.IDFObjectLists.TryGetValue(reference, out ListOfArguments))
                 {
-                    ListOfArguments = this.idf.IDFObjectLists[reference] = new List<IDFArgument>();
+                    ListOfArguments = this._idf.IDFObjectLists[reference] = new List<IDFArgument>();
                 }
 
                 if (false == ListOfArguments.Contains(this))
@@ -42,23 +95,21 @@ namespace EnergyPlusLib.EnergyPlus
                 }
             }
         }
-
-        public bool RangeCheckValue()
+        public Boolean Validate()
         {
-            return this.RangeCheckValue(this.Value);
+            return this.Validate(this.Value);
         }
-
-        public bool RangeCheckValue(string valuein)
+        public Boolean Validate(String valuein)
         {
             this.HasError = false;
             //Check type if not null and if it is a required field..If it is blank and not required..leave the blank and don't do check.
             if ((String.IsNullOrEmpty(valuein)) && !this.Field.IsRequiredField())
             {
-                this.value = valuein;
+                this._value = valuein;
             }
             else
             {
-                switch (this.FieldType())
+                switch (this.FieldType)
                 {
                     case "integer":
 
@@ -84,7 +135,7 @@ namespace EnergyPlusLib.EnergyPlus
                                   ivalue >= Convert.ToInt32(this.Field.RangeMinimum())))
                                 )
                             {
-                                this.value = ivalue.ToString();
+                                this._value = ivalue.ToString();
                                 this.HasError = false;
                             }
                             else
@@ -149,10 +200,10 @@ namespace EnergyPlusLib.EnergyPlus
                                 this.HasError = true;
                             }
                         }
-                        this.value = valuein;
+                        this._value = valuein;
                         break;
                     case "choice":
-                        List<string> keys = this.Choices().ToList();
+                        List<string> keys = this.Choices.ToList();
                         if (keys.Contains(valuein, StringComparer.OrdinalIgnoreCase))
                         {
                             this.HasError = false;
@@ -161,7 +212,7 @@ namespace EnergyPlusLib.EnergyPlus
                         {
                             this.HasError = true;
                         }
-                        this.value = valuein;
+                        this._value = valuein;
                         break;
 
                     case "object-list":
@@ -170,7 +221,7 @@ namespace EnergyPlusLib.EnergyPlus
                         //AutoRDD are output variables that are identified only from the result file. They are not present in the IDD so they are ignored for now. 
                         if (!listname.Contains("autoRDD"))
                         {
-                            List<string> names = this.Choices().ToList();
+                            List<string> names = this.Choices.ToList();
                             if (valuein != null && names.Contains(valuein, StringComparer.OrdinalIgnoreCase))
                             {
                                 this.HasError = false;
@@ -180,74 +231,22 @@ namespace EnergyPlusLib.EnergyPlus
                                 this.HasError = true;
                             }
                         }
-                        this.value = valuein;
+                        this._value = valuein;
                         break;
 
                     case "alpha":
                     default:
-                        this.value = valuein;
+                        this._value = valuein;
                         break;
                 }
             }
 
             return this.HasError;
         }
-
-
-        //To-Do
-        public string FieldName()
+        public String FieldType
         {
-            return this.Field.Name();
+            get{ return this.Field.Type();} 
         }
-
-        public string FieldType()
-        {
-            return this.Field.Type();
-        }
-
-        public IList<string> Choices()
-        {
-            IList<string> names = new List<string>();
-            switch (this.FieldType())
-            {
-                case "object-list":
-                    names = this.idf.GetFieldListArgumentNames(this.Field.ObjectList());
-                    break;
-                case "choice":
-                    names = this.Field.Keys().ToList();
-                    break;
-                default:
-                    break;
-            }
-            return names;
-        }
-
-
-        //public double MaxValue();
-        //public double MinValue();
-        public bool IsRequired()
-        {
-            return this.Field.IsRequiredField();
-        }
-
-        public IList<string> Notes()
-        {
-            return this.Field.Notes();
-        }
-
-        //public bool HasError();
-
-        #endregion
-
-        #region Constructor
-
-        public IDFArgument(IDFDatabase idf, IDDField field, string Value)
-        {
-            this.idf = idf;
-            this.Field = field;
-            this.Value = Value;
-        }
-
         #endregion
     }
 }

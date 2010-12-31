@@ -63,7 +63,7 @@ namespace EnergyPlusLib.EnergyPlus
             this.IDFObjectLists = new Dictionary<string, List<IDFArgument>>();
             foreach (IDFCommand command in this.IDFCommandList)
             {
-                foreach (IDFArgument argument in command.FlattenedArgumentList())
+                foreach (IDFArgument argument in command.FlattenedArgumentList)
                 {
                     foreach (string reference in argument.Field.References())
                     {
@@ -167,11 +167,7 @@ namespace EnergyPlusLib.EnergyPlus
         public void SaveIDFFile(string path)
         {
             TextWriter idffile = new StreamWriter(path);
-
-            foreach (IDFCommand command in this.IDFCommandList)
-            {
-                idffile.WriteLine(command.ToIDFString());
-            }
+            idffile.WriteLine(this.IDFTextBody);
             idffile.Close();
             this.CurrentIDFFilePath = path;
 
@@ -186,6 +182,19 @@ namespace EnergyPlusLib.EnergyPlus
 
 
         }
+        public string IDFTextBody
+        {
+            get
+            {
+                String Body = "";
+                foreach (IDFCommand command in this.IDFCommandList)
+                {
+                    Body += command.ToIDFString();
+                }
+                return Body;
+            }
+        }
+
         #endregion
         #region Methods to Delete /Create Commands.
         /// <summary>
@@ -503,7 +512,7 @@ namespace EnergyPlusLib.EnergyPlus
         {
             List<IDFArgument> args = (
                                          from command in Commands
-                                         from argument in command.FlattenedArgumentList()
+                                         from argument in command.FlattenedArgumentList
                                          where argument.Field == FieldType
                                          select argument).Distinct().ToList();
             return args.ToList();
