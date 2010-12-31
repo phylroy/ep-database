@@ -39,7 +39,7 @@ namespace EnergyPlus
                 @"COIL:COOLING:WATER,MAIN COOLING COIL 1,COOLINGCOILAVAILSCHED,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,MAIN COOLING COIL 1 WATER INLET NODE,MAIN COOLING COIL 1 WATER OUTLET NODE,MIXED AIR NODE 1,MAIN COOLING COIL 1 OUTLET NODE,;";                      
 
             bool IsMatched = idf.TestCommand(test, expectedresult);
-            Program.RunFilesInFolder(@"C:\EnergyPlusV6-0-0\ExampleFiles\errors\MATERIALPROPERTYGLAZINGSPECTRALDATA");
+            Program.RunFilesInFolder(@"C:\EnergyPlusV6-0-0\ExampleFiles\");
 
         }
 
@@ -57,11 +57,11 @@ namespace EnergyPlus
                 idf.EnergyPlusRootFolder = @"C:\EnergyPlusV6-0-0\";
                 idf.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
                 idf.LoadIDFFile(fi.FullName);
-                //idf.ChangeSimulationControl();
-                //idf.ChangeSimulationPeriod(1, 1, 1, 2);
-                //idf.DeleteCommands(@"Site:Location");
-                //idf.AddSQLiteOutput();
-                //idf.ProcessEnergyPlusSimulation();
+                idf.ChangeSimulationControl();
+                idf.ChangeSimulationPeriod(1, 1, 1, 2);
+                idf.DeleteCommands(@"Site:Location");
+                idf.AddSQLiteOutput();
+                idf.ProcessEnergyPlusSimulation();
             }
 
         }
