@@ -5,19 +5,14 @@
         xmlns:CommandsViewModel="clr-namespace:EnergyPlusLib.EnergyPlus.ViewModels.CommandsViewModel;assembly=EnergyPlusLib" 
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        <TabControl Margin="8">
 
 
-            <TabItem Header="EnvelopeTree">
-                <Grid>
 
-                    <CommandsViewModel:IDFCommandsViewModel />
-                </Grid>
-                
-                
-            </TabItem>
+                  <CommandsViewModel:IDFCommandsViewModel Loaded="IDFCommandsViewModel_Loaded" />
 
-        </TabControl>
+        <!-- <advanced:EnvelopeTreeControl />-->
+
+
 
     </Grid>
 </Window>

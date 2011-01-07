@@ -9,19 +9,21 @@ namespace EnergyPlusLib.EnergyPlus
         #region Constructor
         public IDFArgument(IDFDatabase idf, IDDField field, string Value)
         {
-            this._idf = idf;
+            this.IDF = idf;
             this.Field = field;
             this.Value = Value;
         }
         #endregion
 
         #region Fields
-        private IDFDatabase _idf;
+        
         private String _value;
         #endregion
         
         #region Properties
-        public readonly IDDField Field;
+        public IDDField Field  { private set; get; }
+
+        public IDFDatabase IDF { private set; get; }
         public String FieldName
         {
             get { return this.Field.Name(); }
@@ -50,7 +52,7 @@ namespace EnergyPlusLib.EnergyPlus
                 switch (this.FieldType)
                 {
                     case "object-list":
-                        names = this._idf.GetFieldListArgumentNames(this.Field.ObjectList());
+                        names = this.IDF.GetFieldListArgumentNames(this.Field.ObjectList());
                         break;
                     case "choice":
                         names = this.Field.Keys().ToList();
@@ -84,9 +86,9 @@ namespace EnergyPlusLib.EnergyPlus
             {
                 //using TrygetValue because it is faster. 
                 var ListOfArguments = new List<IDFArgument>();
-                if (false == this._idf.IDFObjectLists.TryGetValue(reference, out ListOfArguments))
+                if (false == this.IDF.IDFObjectLists.TryGetValue(reference, out ListOfArguments))
                 {
-                    ListOfArguments = this._idf.IDFObjectLists[reference] = new List<IDFArgument>();
+                    ListOfArguments = this.IDF.IDFObjectLists[reference] = new List<IDFArgument>();
                 }
 
                 if (false == ListOfArguments.Contains(this))
