@@ -17,7 +17,7 @@ using EnergyPlusLib.EnergyPlus;
  * 1. CreateParent/Child/Connected Relationships.
  * 2. Create a grid view master detail. 
  * 3. Tie results SQL to IDFdata.  
- */ 
+ */
 
 
 
@@ -36,10 +36,10 @@ namespace EnergyPlus
                 @"BUILDINGSURFACE:DETAILED,ZN001:WALL001,WALL,R13WALL,MAIN ZONE,OUTDOORS,,SUNEXPOSED,WINDEXPOSED,0.5000000,4,0,0,4.572000,0,0,0,15.24000,0,0,15.24000,0,4.572000;";
 
             string expectedresult =
-                @"COIL:COOLING:WATER,MAIN COOLING COIL 1,COOLINGCOILAVAILSCHED,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,MAIN COOLING COIL 1 WATER INLET NODE,MAIN COOLING COIL 1 WATER OUTLET NODE,MIXED AIR NODE 1,MAIN COOLING COIL 1 OUTLET NODE,;";                      
+                @"COIL:COOLING:WATER,MAIN COOLING COIL 1,COOLINGCOILAVAILSCHED,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,AUTOSIZE,MAIN COOLING COIL 1 WATER INLET NODE,MAIN COOLING COIL 1 WATER OUTLET NODE,MIXED AIR NODE 1,MAIN COOLING COIL 1 OUTLET NODE,;";
 
             bool IsMatched = idf.TestCommand(test, expectedresult);
-            Program.RunFilesInFolder(@"C:\EnergyPlusV6-0-0\ExampleFiles\");
+            Program.RunFilesInFolder(@"C:\EnergyPlusV6-0-0\ExampleFiles\Testing");
 
         }
 

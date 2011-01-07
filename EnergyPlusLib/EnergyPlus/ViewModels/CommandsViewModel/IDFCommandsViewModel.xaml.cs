@@ -30,6 +30,7 @@ namespace EnergyPlusLib.EnergyPlus.ViewModels.CommandsViewModel
             idf.LoadIDFFile(@"C:\EnergyPlusV5-0-0\ExampleFiles\BasicsFiles\Exercise2C-Solution.idf");
             this.DataContext = idf;
             this.richTextBox1.AppendText(idf.IDFTextBody);
+
         }
     }
 }

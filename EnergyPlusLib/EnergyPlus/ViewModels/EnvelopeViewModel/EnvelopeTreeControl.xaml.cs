@@ -11,7 +11,6 @@ namespace EnergyPlusLib.EnergyPlus.ViewModels.EnvelopeViewModel
         public EnvelopeTreeControl()
         {
 
-
             InitializeComponent();
             IDFDatabase idf = new IDFDatabase();
             idf.WeatherFilePath = @"C:\EnergyPlusV5-0-0\WeatherData\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw";

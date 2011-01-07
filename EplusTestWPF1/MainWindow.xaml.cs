@@ -23,5 +23,10 @@ namespace EplusTestWPF1
         {
             InitializeComponent();
         }
+
+        private void IDFCommandsViewModel_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

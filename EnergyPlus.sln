@@ -18,7 +18,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessLib", "..\Documents
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeViewWithViewModelDemo", "..\Documents and Settings\plopez\Desktop\TreeViewWithViewModelDemo\TreeViewWithViewModelDemo\TreeViewWithViewModelDemo.csproj", "{E10EB261-1B7B-4112-863E-2B197F08DDCD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BC9DD2E6-0E0F-41F4-A602-925EE856E6BA}"
+	ProjectSection(SolutionItems) = preProject
+		EnergyPlus.vsmdi = EnergyPlus.vsmdi
+		Local.testsettings = Local.testsettings
+		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = EnergyPlus.vsmdi
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
