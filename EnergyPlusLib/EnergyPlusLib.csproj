@@ -84,6 +84,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Building.cs" />
     <Compile Include="EnergyPlus\Group.cs" />
     <Compile Include="EnergyPlus\IDDDataBase.cs" />
     <Compile Include="EnergyPlus\IDFDatabase.cs" />
