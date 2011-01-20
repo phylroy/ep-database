@@ -6,19 +6,107 @@ using System.Data;
 
 namespace EnergyPlusLib
 {
-    class Material{}
 
-    class Construction{}
+    class Vertex
+    {
+       public Vertex(double x, double y, double z)
+        {
+            this.X = x;
+            this.Y = y;
+            this.Z = z; 
+        }
+       double X{set;get;}
+       double Y{set;get;}
+       double Z{set;get;}
+    }
 
-    class Surface {}
+    class Polygon
+    {
+        List<Vertex> VertexList {set; get;}
+        Polygon(double Azimuth,
+                double Tilt,
+                Vertex StartingPoint,
+                double Height,
+                double Width);
+        Polygon(List<Vertex> VertexList);
+        List<Polygon> Triagulate();
+        bool IsClosed();
+        bool IsPlanar();
+        float GetNormal();
+        float GetArea();
+        float GetPerimeter();
+        void AddVertex(double X, double Y, double Z)
+        {
+            VertexList.Add(new Vertex(X, Y, Z));
+        }
+    }
+
+    class Material
+    {
+        string Name { set; get; }
+        string Roughness { set; get; }
+        double Thickness { set; get; }
+        double Conductivity { set; get; }
+        double Density { set; get; }
+        double SpecificHeat { set; get; }
+        double ThermalAbsorptance { set; get; }
+        double SolarAbsorptance { set; get; }
+        double VisibleAbsorptance { set; get; }
+    }
+
+    class Construction
+    {
+        string Name { set; get; }
+        List<Material> Materials;
+    
+    }
+
+    class Surface 
+    {
+        enum Types { Wall = 0, Floor, Ceiling, Roof }
+        string Name { set; get; }
+        string Type { set; get; } //Wall, Floor,Ceiling,roof
+        Construction Construction { set; get; }
+        Zone Zone { set; get; }
+        string BoundaryCondition { set; get; }
+        string SunExposure { set; get; }
+        string WindExposure { set; get; }
+        double ViewFactor { set; get; }
+        Polygon Polygon { set; get; }
+        virtual List<Fenestration> GetFenestrations();
+    }
+
+    class Fenestration
+    {
+        string Name;
+        enum SurfaceType { Window, Door, GlassDoor, TubularDaylightDome, TubularDaylightDiffuser}
+        SurfaceType SurfaceType;
+        Construction Construction;
+        Surface Surface;
+        string BoundaryCondition { set; get; }
+        double ViewFactor { set; get; }
+        string ShadingControlName { set; get; }
+        string FrameandDividerName{ set; get; }
+    }
 
     class Zone
     {
+        string Name;
+        double DirectionOfRelativeNorth;
+        Vertex Origin;
+        int Multiplier;
+        double CeilingHeight; //optional
+        double Volume;//optional
+        string ZoneInsideConvectionAlgorithm; //default Simple
+        string ZoneOutsideConvectionAlgorithm; //default Simple
+        string PartofTotalFloorArea; //default Yes;
+        virtual void AddSurface(Surface Surface);
         virtual void SetLoadsLighting();
         virtual void SetLoadsOccupancy();
         virtual void SetLoadPlugs();
         virtual void SetLoadsInfiltration();
         virtual void SetLoadsVentilation();
+        virtual List<Surface> GetSurfaces();
     }
 
     class Building
@@ -53,30 +141,18 @@ namespace EnergyPlusLib
 
 
         virtual Construction AddConstruction();
-        virtual GlazingAssembly AddGlazingAssembly();
-        virtual ExternalSurface AddExternalSurface();//Ground, Air, Adiabatic.
-        virtual InternalSurface AddInternalSurface();
-        virtual Schedule AddSchedule();
-        virtual OccLoad AddOccLoad();
-        virtual LightingLoad AddLightingLoad();
-        virtual EquipmentLoad AddEquipementLoad();
+
+
+
 
         //Utility methods. Maybe better placed into a singleton or web serivce. 
-        virtual double NECB_GetFDWR(double HDD)
-        {
-            // A linear interpolation of the formula is set by 
-            // x-axis is HDD y-axis is FDWR% from 40/4000 and 20/7000.
-
-        }
+        virtual double NECB_GetFDWR(double HDD);
         virtual double GetHDD(String cityname);
         virtual double GetCDD(String cityname);
 
         //Query Methods
 
-
-
         //Common Charette methods. 
-
         virtual List<Building> ParametricWallInsulationAnalysis(double minConductance, double maxConductance, double increment) 
         { 
         // Create Ficticious Assembly based on A90.1/MNECB reference construction. 
@@ -91,8 +167,6 @@ namespace EnergyPlusLib
         // Iterate with decreased conductance.
         // store data is results set.
         }
-
-
         virtual List<Building> ParametricRoofInsulationAnalysis();
         virtual List<Building> ParametricFloorInsulationAnalysis();
         virtual List<Building> ParametericOccupantLoadAnalysis();
@@ -103,15 +177,11 @@ namespace EnergyPlusLib
         virtual List<Building> ParametricInfiltrationAnalysis();
         virtual List<Building> ParametricVentilationAnalysis();
         virtual List<Building> ParametricThermalMassAnalysis();
-
-
         virtual List<Building> ParametericOrienationAnalysis();
         virtual List<Building> ParametericMassingAnalysis();
         virtual List<Building> ParametricPlantAnalysis(); //Boiler, Chiller, GSHP, SolarThermal, etc.
         virtual List<Building> ParametricSystemAnalysis();
         virtual List<Building> ParametricShadingAnalysis();
-        
-
     }
 
     class DOEBuilding:Building
@@ -120,6 +190,9 @@ namespace EnergyPlusLib
 
     class EPBuilding:Building
     {
+        EPBuilding();
+        EPBuilding(DOEBuilding doe_building){}
+
     }
 
     class gbXMLBuilding:Building
