@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using EnergyPlusLib;
+using System.Data;
 
 namespace EnergyPlusLib.EnergyPlus
 {
@@ -584,9 +586,14 @@ namespace EnergyPlusLib.EnergyPlus
 
             Directory.CreateDirectory(folder_name);
 
+            string filename_no_extention = Path.GetFileNameWithoutExtension(this.CurrentIDFFilePath);
             //Save IDF file in memory to new folder. 
-            string file_name = folder_name + Path.GetFileName(this.CurrentIDFFilePath);
+            string file_name = folder_name + filename_no_extention + ".idf";
             this.SaveIDFFile(file_name);
+
+            //Set sql filename
+
+            string sql_file_name = folder_name + filename_no_extention + ".sql";
 
             //Save location of current folder and change dir to new folder. 
             string startdirectory = Directory.GetCurrentDirectory();
@@ -631,6 +638,12 @@ namespace EnergyPlusLib.EnergyPlus
             //now clean up after ourselves
             EPProcess.Dispose();
             //EPProcess.StartInfo = null;
+            //SQLite test
+            SqliteDB db = new SqliteDB(sql_file_name);
+            db.LoadDataSet();
+            DataTable List = db.ListDataTables();
+            DataTable Errors = db.LoadDataTable("Errors");
+
 
             //Return to the start directory. 
             Directory.SetCurrentDirectory(startdirectory);
