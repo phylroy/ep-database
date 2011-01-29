@@ -6,7 +6,7 @@ using System.Data;
 
 namespace EnergyPlusLib
 {
-
+/*
     class Vertex
     {
        public Vertex(double x, double y, double z)
@@ -198,4 +198,5 @@ namespace EnergyPlusLib
     class gbXMLBuilding:Building
     {
     }
+ * */
 }
