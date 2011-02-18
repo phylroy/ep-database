@@ -121,7 +121,7 @@ namespace EnergyPlusLib
         }
 
         //Gets DOE2 command from string. 
-       void get_command_from_string(string command_string)
+        void get_command_from_string(string command_string)
         {
 
             //Split the command based on the equal '=' sign.
@@ -201,7 +201,7 @@ namespace EnergyPlusLib
             }
         }
 
-       String output()
+        String output()
         {
             String temp_string = "";
             if (this.utype != "")
@@ -216,86 +216,103 @@ namespace EnergyPlusLib
             temp_string = temp_string + "..\n";
             return temp_string;
         }
-       String shortenValue(string keyword, string value)
-      {
-      int limit = 80;
-      string comma =", ";
-      string tempstring = String.Format("{0}                 = {1} \n", keyword, value);
-      string returnstring = "";
-      if (tempstring.Length < limit)
-      {
-        returnstring = tempstring;
-      
-      }
-      
-      /*
-      else
-        tempstring =  String.Format("{0}                 = \n", keyword);
-        if value.match(/^\((.*)\)$/)
-          newstring = value.match(/\((.*)\)/)
-          array = Array.new()
-          array = GetCSVData(newstring[1])
-          tempstring = tempstring + " ( "
+        String shortenValue(string keyword, string value)
+        {
+            int limit = 80;
+            string comma = ", ";
+            string tempstring = String.Format("{0}                 = {1} \n", keyword, value);
+            string returnstring = "";
+            if (tempstring.Length < limit)
+            {
+                returnstring = tempstring;
 
-          array.each_with_index do |substring, i|
-            if substring != ","
-              #substring = ", "
-              if (i+1) == array.length
-                comma = " )\n"
-              else
-                comma =", "
-              end
-              substring.strip!()
-              if ( ( tempstring.length() + substring.length() + comma.length() ) >= limit )
-                returnstring = returnstring + tempstring  +"\n"
-                tempstring = "         "+substring+ comma
-              else
-                tempstring = tempstring + substring + comma
-              end
-              if (i+1) == array.length
+            }
 
-                returnstring = returnstring + tempstring
+            /*
+            else
+              tempstring =  String.Format("{0}                 = \n", keyword);
+              if value.match(/^\((.*)\)$/)
+                newstring = value.match(/\((.*)\)/)
+                array = Array.new()
+                array = GetCSVData(newstring[1])
+                tempstring = tempstring + " ( "
+
+                array.each_with_index do |substring, i|
+                  if substring != ","
+                    #substring = ", "
+                    if (i+1) == array.length
+                      comma = " )\n"
+                    else
+                      comma =", "
+                    end
+                    substring.strip!()
+                    if ( ( tempstring.length() + substring.length() + comma.length() ) >= limit )
+                      returnstring = returnstring + tempstring  +"\n"
+                      tempstring = "         "+substring+ comma
+                    else
+                      tempstring = tempstring + substring + comma
+                    end
+                    if (i+1) == array.length
+
+                      returnstring = returnstring + tempstring
+                    end
+                  end
+                end
+                returnstring = returnstring
+              end
+
+              if value.match(/\{(.*)\}/)
+                newstring = value.match(/\{(.*)\}/)
+                array = Array.new()
+                array = newstring[1].split(" ")
+                tempstring = tempstring + " { "
+
+                array.each_with_index do |substring, i|
+                  if substring != ","
+                    #substring = ", "
+                    if (i+1) == array.length
+                      comma = " )\n"
+                    else
+                      comma ="  "
+                    end
+                    substring.strip!()
+                    if ( ( tempstring.length() + substring.length() + comma.length() ) >= limit )
+                      returnstring = returnstring + tempstring  +"\n"
+                      tempstring = "         "+substring+ comma
+                    else
+                      tempstring = tempstring + substring + comma
+                    end
+                    if (i+1) == array.length
+
+                      returnstring = returnstring + tempstring
+                    end
+                  end
+                end
+                returnstring = returnstring
               end
             end
-          end
-          returnstring = returnstring
-        end
+             *  */
+            return returnstring;
 
-        if value.match(/\{(.*)\}/)
-          newstring = value.match(/\{(.*)\}/)
-          array = Array.new()
-          array = newstring[1].split(" ")
-          tempstring = tempstring + " { "
+        }
 
-          array.each_with_index do |substring, i|
-            if substring != ","
-              #substring = ", "
-              if (i+1) == array.length
-                comma = " )\n"
-              else
-                comma ="  "
-              end
-              substring.strip!()
-              if ( ( tempstring.length() + substring.length() + comma.length() ) >= limit )
-                returnstring = returnstring + tempstring  +"\n"
-                tempstring = "         "+substring+ comma
-              else
-                tempstring = tempstring + substring + comma
-              end
-              if (i+1) == array.length
-
-                returnstring = returnstring + tempstring
-              end
-            end
-          end
-          returnstring = returnstring
-        end
-      end
-       *  */
-      return returnstring;
-      
-      }
+        String GetCSVData(string csv_data)
+        {
+            /*
+                  resultsArray = Array.new()
+                  csv_data.split(/(,|\r\n|\n|\r)(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/m).each do |csv|
 
 
+                    next if csv.empty?
+
+                    csv = csv.strip
+
+
+                    resultsArray.push(csv)
+
+                  end
+            */
+
+        }
     }
 }
