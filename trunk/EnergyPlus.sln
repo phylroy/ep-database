@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual C# Express 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnergyPlusConsoleApplication", "EnergyPlus\EnergyPlusConsoleApplication.csproj", "{3F69FAD3-1483-468C-B531-5248BC7661A8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{654C9538-5233-4E92-A3EE-1E3685032C2E} = {654C9538-5233-4E92-A3EE-1E3685032C2E}
@@ -10,25 +10,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnergyPlusLib", "EnergyPlus
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EplusTestWPF1", "EplusTestWPF1\EplusTestWPF1.csproj", "{412C4247-3736-4D42-A039-8EEA5F06C408}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPF TreeView", "..\Documents and Settings\plopez\Desktop\TreeView\WPF TreeView\WPF TreeView.csproj", "{012C8923-BA09-4CDE-9B19-110316C81178}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample Application", "..\Documents and Settings\plopez\Desktop\TreeView\Sample Application\Sample Application.csproj", "{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessLib", "..\Documents and Settings\plopez\Desktop\TreeViewWithViewModelDemo\BusinessLib\BusinessLib.csproj", "{10B78211-364B-46CF-B310-22457F5669D2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TreeViewWithViewModelDemo", "..\Documents and Settings\plopez\Desktop\TreeViewWithViewModelDemo\TreeViewWithViewModelDemo\TreeViewWithViewModelDemo.csproj", "{E10EB261-1B7B-4112-863E-2B197F08DDCD}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BC9DD2E6-0E0F-41F4-A602-925EE856E6BA}"
-	ProjectSection(SolutionItems) = preProject
-		EnergyPlus.vsmdi = EnergyPlus.vsmdi
-		Local.testsettings = Local.testsettings
-		TraceAndTestImpact.testsettings = TraceAndTestImpact.testsettings
-	EndProjectSection
-EndProject
 Global
-	GlobalSection(TestCaseManagementSettings) = postSolution
-		CategoryFile = EnergyPlus.vsmdi
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -68,48 +50,11 @@ Global
 		{412C4247-3736-4D42-A039-8EEA5F06C408}.Release|Mixed Platforms.Build.0 = Release|x86
 		{412C4247-3736-4D42-A039-8EEA5F06C408}.Release|x86.ActiveCfg = Release|x86
 		{412C4247-3736-4D42-A039-8EEA5F06C408}.Release|x86.Build.0 = Release|x86
-		{012C8923-BA09-4CDE-9B19-110316C81178}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{012C8923-BA09-4CDE-9B19-110316C81178}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{012C8923-BA09-4CDE-9B19-110316C81178}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{012C8923-BA09-4CDE-9B19-110316C81178}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{012C8923-BA09-4CDE-9B19-110316C81178}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{012C8923-BA09-4CDE-9B19-110316C81178}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{012C8923-BA09-4CDE-9B19-110316C81178}.Release|Any CPU.Build.0 = Release|Any CPU
-		{012C8923-BA09-4CDE-9B19-110316C81178}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{012C8923-BA09-4CDE-9B19-110316C81178}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{012C8923-BA09-4CDE-9B19-110316C81178}.Release|x86.ActiveCfg = Release|Any CPU
-		{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{A6DEDBDF-FAB5-4E4B-8676-E4E1C7635757}.Release|x86.ActiveCfg = Release|Any CPU
-		{10B78211-364B-46CF-B310-22457F5669D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{10B78211-364B-46CF-B310-22457F5669D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{10B78211-364B-46CF-B310-22457F5669D2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{10B78211-364B-46CF-B310-22457F5669D2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{10B78211-364B-46CF-B310-22457F5669D2}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{10B78211-364B-46CF-B310-22457F5669D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{10B78211-364B-46CF-B310-22457F5669D2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{10B78211-364B-46CF-B310-22457F5669D2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{10B78211-364B-46CF-B310-22457F5669D2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{10B78211-364B-46CF-B310-22457F5669D2}.Release|x86.ActiveCfg = Release|Any CPU
-		{E10EB261-1B7B-4112-863E-2B197F08DDCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E10EB261-1B7B-4112-863E-2B197F08DDCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E10EB261-1B7B-4112-863E-2B197F08DDCD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{E10EB261-1B7B-4112-863E-2B197F08DDCD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{E10EB261-1B7B-4112-863E-2B197F08DDCD}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E10EB261-1B7B-4112-863E-2B197F08DDCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E10EB261-1B7B-4112-863E-2B197F08DDCD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E10EB261-1B7B-4112-863E-2B197F08DDCD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{E10EB261-1B7B-4112-863E-2B197F08DDCD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{E10EB261-1B7B-4112-863E-2B197F08DDCD}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(TestCaseManagementSettings) = postSolution
+		CategoryFile = EnergyPlus.vsmdi
 	EndGlobalSection
 EndGlobal

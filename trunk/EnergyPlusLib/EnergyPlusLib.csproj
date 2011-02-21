@@ -85,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Building.cs" />
+    <Compile Include="DOECommand.cs" />
     <Compile Include="SqliteDB.cs" />
     <Compile Include="EnergyPlus\Group.cs" />
     <Compile Include="EnergyPlus\IDDDataBase.cs" />

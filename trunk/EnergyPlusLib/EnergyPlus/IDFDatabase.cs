@@ -156,30 +156,30 @@ namespace EnergyPlusLib.EnergyPlus
         /// <summary>
         /// This method calls the private method from the IDDDatabase class and creates, or overwrites that data in the singleton. 
         /// </summary>
-        /// <param name="filename"></param>
-        public void LoadIDDFile(string filename)
+        /// <param name="sIDDFilename"></param>
+        public void LoadIDDFile(string sIDDFilename)
         {
-            this.idd.LoadIDDFile(filename);
+            this.idd.LoadIDDFile(sIDDFilename);
         }
         /// <summary>
         /// Save IDF format file of building to the passed full path, and sets the current path variable "CurrentIDFFilePath"
         /// to the passed path. 
         /// </summary>
-        /// <param name="path"> full path of idf file to be saved.</param>
-        public void SaveIDFFile(string path)
+        /// <param name="sIDFFilename"> full path of idf file to be saved.</param>
+        public void SaveIDFFile(string sIDFFilename)
         {
-            TextWriter idffile = new StreamWriter(path);
+            TextWriter idffile = new StreamWriter(sIDFFilename);
             idffile.WriteLine(this.IDFTextBody);
             idffile.Close();
-            this.CurrentIDFFilePath = path;
+            this.CurrentIDFFilePath = sIDFFilename;
 
-            TextWriter originalfile = new StreamWriter(path+".original");
+            TextWriter originalfile = new StreamWriter(sIDFFilename+".original");
             foreach (string line in this.OrigIDFFileStringsNoComments)
             {
                 originalfile.WriteLine(line);
             }
             originalfile.Close();
-            this.CurrentIDFFilePath = path;
+            this.CurrentIDFFilePath = sIDFFilename;
 
 
 
