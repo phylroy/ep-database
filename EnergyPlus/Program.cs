@@ -12,6 +12,7 @@ using EnergyPlusLib.EnergyPlus;
 
 
 
+
 //to-do
 
 /* 1. Add Iron Python
@@ -29,6 +30,11 @@ namespace EnergyPlus
     {
         static void Main(string[] args)
         {
+
+            //Doe test
+            DOEBuilding building = new DOEBuilding();
+            building.read_input_file(@"C:\XXX\T2408SamplePrelim.inp", "");
+            building.write_clean_output_file(@"C:\XXX\doe.inp");
 
             //SQLite test
             SqliteDB db = new SqliteDB(@"C:\EnergyPlusV6-0-0\ExampleFiles\Testing\simrun\RefBldgSecondarySchoolNew2004_Chicago.sql");

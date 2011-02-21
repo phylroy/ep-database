@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.IO;
 
 namespace EnergyPlusLib
 {
@@ -15,7 +16,7 @@ namespace EnergyPlusLib
         // Contains the DOE-2 command name.
         String commandName;
         // Contains the Keyword Pairs.
-        Dictionary<string, string> keywordPairs;
+        Dictionary<string, string> keywordPairs = new Dictionary<string,string>();
         // Lists all ancestors in increasing order.
         List<DOECommand> parents;
         // An Array of all the children of this command.
@@ -50,15 +51,12 @@ namespace EnergyPlusLib
             new List<String>(){"SPACE"},
             new List<String>(){"EXTERIOR-WALL", "INTERIOR-WALL","UNDERGROUND-WALL", "ROOF"},
             new List<String>(){"WINDOW", "DOOR"},
-
         };
         List<List<String>> hvacLevel = new List<List<String>>() { 
             new List<String>(){"SYSTEM"}, 
             new List<String>(){"ZONE"} 
         };
 
-        // Pointer to the building obj.
-        //attr_accessor building;
 
         #region Keyword Methods
         String GetValue(string Keyword)
@@ -76,7 +74,6 @@ namespace EnergyPlusLib
             this.keywordPairs.Remove(Keyword);
         }
         #endregion
-
         String determine_command_type(String type)
         {
             type = type.Trim();
@@ -87,7 +84,6 @@ namespace EnergyPlusLib
             if (this.non_utype_commands.Contains(type)) s_command_type = "no_u-type";
             return s_command_type;
         }
-
         String doe_scope()
         {
             string scope = null;
@@ -121,7 +117,7 @@ namespace EnergyPlusLib
         }
 
         //Gets DOE2 command from string. 
-        void get_command_from_string(string command_string)
+        public void get_command_from_string(string command_string)
         {
 
             //Split the command based on the equal '=' sign.
@@ -133,7 +129,7 @@ namespace EnergyPlusLib
             var command_only_regex = new Regex(@"(^\s*(\S*)\s*)");
             var parameter_type_command_regex = new Regex(@"(^\s*("".*?"")\s*(\=?)\s*(\S*)\s*)");
             var material_type_command_regex = new Regex(@"(^\s*(MATERIAL)\s*(\=?)\s*(.*)\s*)(THICKNESS.*|INSIDE-FILM-RES.*)");
-            var material2_type_command_regex = new Regex(@"(^\s*(MATERIAL|DAY-SCHEDULES|WEEK-SCHEDULES)\s*(\=?)\s*(.*)\s*)/)");
+            var material2_type_command_regex = new Regex(@"(^\s*(MATERIAL|DAY-SCHEDULES|WEEK-SCHEDULES)\s*(\=?)\s*(.*)\s*)");
             var star_type_command_regex = new Regex(@"(^\s*(\S*)\s*(\=?)\s*(\*.*?\*)\s*)");
             var bracket_type_command_regex = new Regex(@"(^\s*(\S*)\s*(\=?)\s*(\(.*?\))\s*)");
             var curly_type_command_regex = new Regex(@"(^\s*(\S*)\s*(\=?)\s*(\{.*?\})\s*)");
@@ -152,7 +148,7 @@ namespace EnergyPlusLib
                     Match matchgroup = command_and_uvalue_regex.Match(command_string);
                     this.commandName = matchgroup.Groups[3].ToString().Trim();
                     this.utype = matchgroup.Groups[2].ToString().Trim();
-                    command_string.Replace(matchgroup.Groups[1].ToString(), "");
+                    command_string = command_string.Replace(matchgroup.Groups[1].ToString(), "");
                 }
                 else
                 //if no u-value, get just the command.
@@ -160,7 +156,7 @@ namespace EnergyPlusLib
                     Match matchgroup = command_only_regex.Match(command_string);
                     remove = matchgroup.Groups[1].ToString().Trim();
                     this.commandName = matchgroup.Groups[2].ToString().Trim();
-                    command_string.Replace(matchgroup.Groups[1].ToString(), "");
+                    command_string = command_string.Replace(matchgroup.Groups[1].ToString(), "");
                 }
 
                 //Loop throught the keyword values. 
@@ -196,123 +192,199 @@ namespace EnergyPlusLib
                     keyword = matchgroup.Groups[2].ToString().Trim();
                     value = matchgroup.Groups[4].ToString().Trim();
                     this.SetValue(keyword, value);
-                    command_string.Replace(matchgroup.Groups[1].ToString(), "");
+                    command_string = command_string.Replace(matchgroup.Groups[1].ToString(), "");
                 }
             }
         }
 
-        String output()
+        //converts DOECommand data to INP command sting. 
+        public String output()
         {
             String temp_string = "";
-            if (this.utype != "")
+            if (this.utype != "" && this.utype != null )
             {
-                temp_string = temp_string + "#{utype} = ";
+                temp_string += String.Format("{0} = ", this.utype);
             }
-            temp_string = temp_string + this.commandName + "\n";
+            temp_string += this.commandName + "\n";
             foreach (var pair in this.keywordPairs)
             {
-                temp_string = temp_string + String.Format("  {0} {1}\n", pair.Key, pair.Value);
+                temp_string = temp_string + this.shortenValue(pair.Key, pair.Value);
             }
-            temp_string = temp_string + "..\n";
+            temp_string = temp_string + "..\n\n";
             return temp_string;
         }
-        String shortenValue(string keyword, string value)
+        
+        private String shortenValue(string keyword, string value)
         {
+
             int limit = 80;
-            string comma = ", ";
-            string tempstring = String.Format("{0}                 = {1} \n", keyword, value);
+
+            string tempstring = String.Format("   {0,-16}= {1} \n", keyword, value);
             string returnstring = "";
             if (tempstring.Length < limit)
             {
                 returnstring = tempstring;
 
             }
-
-            /*
             else
-              tempstring =  String.Format("{0}                 = \n", keyword);
-              if value.match(/^\((.*)\)$/)
-                newstring = value.match(/\((.*)\)/)
-                array = Array.new()
-                array = GetCSVData(newstring[1])
-                tempstring = tempstring + " ( "
+            {
+                //add start of command.
+                tempstring = String.Format("   {0,-16}= ", keyword);
+                List<string> values = null;
+                Match MatchGroup = null;
+                string startbracket = null;
+                string endbracket = null;
 
-                array.each_with_index do |substring, i|
-                  if substring != ","
-                    #substring = ", "
-                    if (i+1) == array.length
-                      comma = " )\n"
-                    else
-                      comma =", "
-                    end
-                    substring.strip!()
-                    if ( ( tempstring.length() + substring.length() + comma.length() ) >= limit )
-                      returnstring = returnstring + tempstring  +"\n"
-                      tempstring = "         "+substring+ comma
-                    else
-                      tempstring = tempstring + substring + comma
-                    end
-                    if (i+1) == array.length
+                Regex ValueInBrackets = new Regex(@"^\((.*)\)$");
+                if (ValueInBrackets.IsMatch(value))
+                {
+                    MatchGroup = ValueInBrackets.Match(value);
+                    values = Regex.Split(MatchGroup.Groups[1].ToString().Trim(), @"(,|\r\n|\n|\r)(?=(?:[^""]*""[^""]*"")*(?![^""]*""))").ToList<string>();
+                    startbracket = " ( ";
+                    endbracket = " ) ";
+                }
+                Regex ValueInCurlyBrackets = new Regex(@"\{(.*)\}");
+                if (ValueInCurlyBrackets.IsMatch(value))
+                {
+                    MatchGroup = ValueInCurlyBrackets.Match(value);
+                    values = Regex.Split(MatchGroup.Groups[1].ToString().Trim(), @"(,|\r\n|\n|\r)(?=(?:[^""]*""[^""]*"")*(?![^""]*""))").ToList<string>();
+                    startbracket = " { ";
+                    endbracket = " } ";
+                }
 
-                      returnstring = returnstring + tempstring
-                    end
-                  end
-                end
-                returnstring = returnstring
-              end
+                if (ValueInCurlyBrackets.IsMatch(value) || ValueInBrackets.IsMatch(value))
+                {
+                    tempstring = tempstring + startbracket;
+                    string comma = ", ";
+                    int counter = 0;
+                    foreach (string substring in values)
+                    {
 
-              if value.match(/\{(.*)\}/)
-                newstring = value.match(/\{(.*)\}/)
-                array = Array.new()
-                array = newstring[1].split(" ")
-                tempstring = tempstring + " { "
+                        if (substring != ",")
+                        {
+                            if (values[counter] == values.Last())
+                            {
+                                comma = endbracket + "\n";
+                            }
+                            else
+                            {
+                                comma = ", ";
+                            }
+                            string substring1 = substring.Trim();
+                            if ((tempstring.Length + substring1.Length + comma.Length) >= limit)
+                            {
+                                returnstring = returnstring + tempstring + "\n";
+                                tempstring = "         " + substring + comma;
+                            }
+                            else
+                            {
+                                returnstring = returnstring + tempstring + "\n";
+                                tempstring = String.Format("                     {0}", substring.Trim() + comma);
+                            }
+                            if (values[counter] == values.Last())
+                            {
+                                returnstring = returnstring + tempstring;
+                            }
 
-                array.each_with_index do |substring, i|
-                  if substring != ","
-                    #substring = ", "
-                    if (i+1) == array.length
-                      comma = " )\n"
-                    else
-                      comma ="  "
-                    end
-                    substring.strip!()
-                    if ( ( tempstring.length() + substring.length() + comma.length() ) >= limit )
-                      returnstring = returnstring + tempstring  +"\n"
-                      tempstring = "         "+substring+ comma
-                    else
-                      tempstring = tempstring + substring + comma
-                    end
-                    if (i+1) == array.length
 
-                      returnstring = returnstring + tempstring
-                    end
-                  end
-                end
-                returnstring = returnstring
-              end
-            end
-             *  */
+
+                        }
+                        counter++;
+                    }
+
+                }
+            }
+
+
             return returnstring;
-
-        }
-
-        String GetCSVData(string csv_data)
-        {
-            /*
-                  resultsArray = Array.new()
-                  csv_data.split(/(,|\r\n|\n|\r)(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))/m).each do |csv|
-
-
-                    next if csv.empty?
-
-                    csv = csv.strip
-
-
-                    resultsArray.push(csv)
-
-                  end
-            */
-
         }
     }
+
+
+
+    public class DOEBuilding
+    {
+
+        List<DOECommand> Commands, Parents;
+        String engine;
+        string weather_file;
+        string doe_inp_file;
+        //DOESIM doe_sim; 
+
+        public DOEBuilding()
+        {
+            this.engine = "C:\\DOE22\\DOE22.BAT exent ";
+            this.Commands = new List<DOECommand>();
+            this.Parents = new List<DOECommand>();
+
+        }
+        public void read_input_file(string filename, string weather_file)
+        {
+            this.doe_inp_file = filename;
+            this.weather_file = weather_file;
+            this.Commands.Clear();
+            this.Parents.Clear();
+            string command_string = "";
+
+            List<String> FileAsString = File.ReadAllLines(this.doe_inp_file).ToList();
+            foreach (string line in FileAsString)
+            {
+                Regex IsComment = new Regex(@"\$.*");
+                if (!IsComment.IsMatch(line))
+                {
+                    //Check if this is the last line of the command. 
+                    Regex IsLastLine = new Regex(@"(.*?)\.\.");
+                    if (IsLastLine.IsMatch(line))
+                    {
+                        Match match = IsLastLine.Match(line);
+                        command_string = command_string + match.Groups[1];
+                        DOECommand command = new DOECommand();
+                        command.get_command_from_string(command_string);
+                        command_string = "";
+                        Commands.Add(command);
+                    }
+                    else
+                    {
+                        command_string += line;
+                    }
+
+                }
+
+
+            }
+
+
+        }
+
+    public void write_clean_output_file(string INPFilename)
+    {
+
+      Console.Write("Writing DOE INP file");
+      TextWriter idffile = new StreamWriter(INPFilename);
+            idffile.WriteLine(this.INPTextBody);
+            idffile.Close();
+      
+
+    }
+
+
+        public string INPTextBody
+        {
+            get
+            {
+                String Body = "";
+                foreach (DOECommand command in this.Commands)
+                {
+                    Body += command.output();
+                }
+                return Body;
+            }
+        }
+
+
+
+    }
 }
+
+
+
