@@ -12,13 +12,10 @@ namespace EnergyPlusLib.EnergyPlus
     /// <summary>
     /// This class manages the E+ commands 
     /// </summary>
-    public class IDFDatabase
+    public class IDFDatabase : BuildingDatabase
     {
         #region Properties
-        /// <summary>
-        /// Place to store error involving this command. 
-        /// </summary>
-        public List<string> ErrorList = new List<string>();
+
 
         /// <summary>
         /// List container containing all the Commands in the Building. 
@@ -30,30 +27,20 @@ namespace EnergyPlusLib.EnergyPlus
         /// </summary>
         public readonly IDDDataBase idd = IDDDataBase.GetInstance();
 
-        /// <summary>
-        ///  The current IDF file name that was last loaded from or saved to. 
-        /// </summary>
-        public string CurrentIDFFilePath { get; set; }
+
 
         /// <summary>
         ///  The current IDF file name that was last loaded from or saved to. 
         /// </summary>
         public List<string> OrigIDFFileStringsNoComments;
 
-        /// <summary>
-        /// Path to the energy plus root folder. "c:\energyplus6.0\" for example. 
-        /// </summary>
-        public string EnergyPlusRootFolder;
 
         /// <summary>
         /// This Dictionary contains all the arguments referenced by the object lists names.  
         /// </summary>
         public Dictionary<string, List<IDFArgument>> IDFObjectLists = new Dictionary<string, List<IDFArgument>>();
 
-        /// <summary>
-        /// The full path of the weather file used for the simulation. 
-        /// </summary>
-        public string WeatherFilePath;
+
 
         /// <summary>
         /// This method parses all the commands and arguments in the building model and creates the 
@@ -117,6 +104,9 @@ namespace EnergyPlusLib.EnergyPlus
         /// </summary>
         public IDFDatabase()
         {
+            this.InputFileExtention = ".idf";
+            this.ResultFileExtention = ".sql";
+            this.SimulationExecutable = "RunEPlus.bat ";
             this.IDFCommandList = new IDFCommands();
         }
 
@@ -128,12 +118,12 @@ namespace EnergyPlusLib.EnergyPlus
         /// This method Loads Existing IDF file into memory and set the current sIDFFile varible.  
         /// </summary>
         /// <param name="sIDFFileName">Path of exisiting IDF file.</param>
-        public void LoadIDFFile(string sIDFFileName)
+        public void LoadInputFile(string sIDFFileName)
         {
-            this.CurrentIDFFilePath = sIDFFileName;
+            this.CurrentInputFilePath = sIDFFileName;
             this.IDFCommandList.Clear();
             //Read file into string List. 
-            IList<string> idfListString = File.ReadAllLines(this.CurrentIDFFilePath).ToList();
+            IList<string> idfListString = File.ReadAllLines(this.CurrentInputFilePath).ToList();
 
             //find command strings and reformat. 
             IList<string> CommandStrings = this.CleanCommandStrings(idfListString);
@@ -166,12 +156,12 @@ namespace EnergyPlusLib.EnergyPlus
         /// to the passed path. 
         /// </summary>
         /// <param name="sIDFFilename"> full path of idf file to be saved.</param>
-        public void SaveIDFFile(string sIDFFilename)
+        public void SaveInputFile(string sIDFFilename)
         {
             TextWriter idffile = new StreamWriter(sIDFFilename);
             idffile.WriteLine(this.IDFTextBody);
             idffile.Close();
-            this.CurrentIDFFilePath = sIDFFilename;
+            this.CurrentInputFilePath = sIDFFilename;
 
             TextWriter originalfile = new StreamWriter(sIDFFilename+".original");
             foreach (string line in this.OrigIDFFileStringsNoComments)
@@ -179,7 +169,7 @@ namespace EnergyPlusLib.EnergyPlus
                 originalfile.WriteLine(line);
             }
             originalfile.Close();
-            this.CurrentIDFFilePath = sIDFFilename;
+            this.CurrentInputFilePath = sIDFFilename;
 
 
 
@@ -567,89 +557,19 @@ namespace EnergyPlusLib.EnergyPlus
             return test4;
         }
         #endregion
-        #region Run Simulation Methods
-        public bool ProcessEnergyPlusSimulation()
+
+
+
+
+        protected void LoadResults(string resultsFile)
         {
-            bool DeleteFolder = false;
-
-            //Get path of current idf file. 
-            string idfFolderPath = Path.GetDirectoryName(this.CurrentIDFFilePath);
-            //Create new folder to run simulation in. 
-            string folder_name = idfFolderPath + @"\simrun\";
-            if (Directory.Exists(folder_name))
-            {
-                if (DeleteFolder == true)
-                {
-                    Directory.Delete(folder_name, true);
-                }
-            }
-
-            Directory.CreateDirectory(folder_name);
-
-            string filename_no_extention = Path.GetFileNameWithoutExtension(this.CurrentIDFFilePath);
-            //Save IDF file in memory to new folder. 
-            string file_name = folder_name + filename_no_extention + ".idf";
-            this.SaveIDFFile(file_name);
-
-            //Set sql filename
-
-            string sql_file_name = folder_name + filename_no_extention + ".sql";
-
-            //Save location of current folder and change dir to new folder. 
-            string startdirectory = Directory.GetCurrentDirectory();
-            Directory.SetCurrentDirectory(folder_name);
-
-            //Create new process 
-            var EPProcess = new Process();
-            var EPStartInfo = new ProcessStartInfo();
-            EPStartInfo.FileName = "CMD.exe ";
-            EPStartInfo.RedirectStandardError = false;
-            EPStartInfo.RedirectStandardInput = false;
-            EPProcess.StartInfo.UseShellExecute = false;
-            EPProcess.StartInfo.RedirectStandardOutput = true;
-            EPStartInfo.UseShellExecute = false;
-            //Show the command window
-            EPStartInfo.CreateNoWindow = false;
-
-            //Set up E+ arguments. 
-            string filen = folder_name + Path.GetFileNameWithoutExtension(this.CurrentIDFFilePath);
-            string sWeatherfileNoExtention = Path.GetFileNameWithoutExtension(this.WeatherFilePath);
-            EPStartInfo.Arguments = "/D /c " + this.EnergyPlusRootFolder + "RunEPlus.bat " + filen + " " +
-                                    sWeatherfileNoExtention;
-            EPProcess.EnableRaisingEvents = true;
-            EPProcess.StartInfo = EPStartInfo;
-
-            //start cmd.exe & the EP process
-            EPProcess.Start();
-
-            //set the wait period for exiting the process
-            EPProcess.WaitForExit(150000000); //Roughly 1.73 days. 
-
-            int ExitCode = EPProcess.ExitCode;
-            bool EPSuccessful = true;
-
-            //Now we need to see if the process was successful
-            if (ExitCode > 0 & !EPProcess.HasExited)
-            {
-                EPProcess.Kill();
-                EPSuccessful = false;
-            }
-
-            //now clean up after ourselves
-            EPProcess.Dispose();
-            //EPProcess.StartInfo = null;
             //SQLite test
-            SqliteDB db = new SqliteDB(sql_file_name);
+            SqliteDB db = new SqliteDB(resultsFile);
             db.LoadDataSet();
             DataTable List = db.ListDataTables();
             DataTable Errors = db.LoadDataTable("Errors");
-
-
-            //Return to the start directory. 
-            Directory.SetCurrentDirectory(startdirectory);
-            return EPSuccessful;
         }
         #endregion
-        #endregion
+
     }
 }
