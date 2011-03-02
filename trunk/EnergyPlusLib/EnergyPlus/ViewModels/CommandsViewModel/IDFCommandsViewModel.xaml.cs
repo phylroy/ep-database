@@ -25,9 +25,9 @@ namespace EnergyPlusLib.EnergyPlus.ViewModels.CommandsViewModel
             InitializeComponent();
             IDFDatabase idf = new IDFDatabase();
             idf.WeatherFilePath = @"C:\EnergyPlusV5-0-0\WeatherData\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw";
-            idf.EnergyPlusRootFolder = @"C:\EnergyPlusV5-0-0\";
+            idf.SimulationEngineRootFolder = @"C:\EnergyPlusV5-0-0\";
             idf.LoadIDDFile(@"C:\EnergyPlusV5-0-0\Energy+.idd");
-            idf.LoadIDFFile(@"C:\EnergyPlusV5-0-0\ExampleFiles\BasicsFiles\Exercise2C-Solution.idf");
+            idf.LoadInputFile(@"C:\EnergyPlusV5-0-0\ExampleFiles\BasicsFiles\Exercise2C-Solution.idf");
             this.DataContext = idf;
             this.richTextBox1.AppendText(idf.IDFTextBody);
 
