@@ -156,7 +156,7 @@ namespace EnergyPlusLib.EnergyPlus
         /// to the passed path. 
         /// </summary>
         /// <param name="sIDFFilename"> full path of idf file to be saved.</param>
-        public void SaveInputFile(string sIDFFilename)
+        public override void SaveInputFile(string sIDFFilename)
         {
             TextWriter idffile = new StreamWriter(sIDFFilename);
             idffile.WriteLine(this.IDFTextBody);

@@ -42,7 +42,7 @@ namespace EnergyPlusLib
         public virtual void LoadResults(string File){}
         public virtual void LoadInputFile(string File){}
         public virtual void SaveInputFile(string File){}
-        public bool RunSimulation()
+        public virtual  bool RunSimulation()
         {
             bool DeleteFolder = false;
 
@@ -63,7 +63,7 @@ namespace EnergyPlusLib
             string filename_no_extention = Path.GetFileNameWithoutExtension(this.CurrentInputFilePath);
             //Save IDF file in memory to new folder. 
             string file_name = folder_name + filename_no_extention + this.InputFileExtention;
-            this.SaveInputFile(file_name);
+            SaveInputFile(file_name);
 
             //Set sql filename
 
@@ -88,8 +88,7 @@ namespace EnergyPlusLib
             //Set up simulation arguments. 
             string filen = folder_name + Path.GetFileNameWithoutExtension(this.CurrentInputFilePath);
             string sWeatherfileNoExtention = Path.GetFileNameWithoutExtension(this.WeatherFilePath);
-            SimStartInfo.Arguments = "/D /c " + this.SimulationEngineRootFolder + this.SimulationExecutable + filen + " " +
-                                    sWeatherfileNoExtention;
+            //SimStartInfo.Arguments = "/D /c " + this.SimulationEngineRootFolder + this.SimulationExecutable + filen + " " + sWeatherfileNoExtention;
             SimProcess.EnableRaisingEvents = true;
             SimProcess.StartInfo = SimStartInfo;
 
@@ -97,13 +96,13 @@ namespace EnergyPlusLib
             SimProcess.Start();
 
             //set the wait period for exiting the process
-            SimProcess.WaitForExit(150000000); //Roughly 1.73 days. 
+            SimProcess.WaitForExit(1); //Roughly 1.73 days. 
 
-            int ExitCode = SimProcess.ExitCode;
+                        
             bool EPSuccessful = true;
 
             //Now we need to see if the process was successful
-            if (ExitCode > 0 & !SimProcess.HasExited)
+            if ( !SimProcess.HasExited)
             {
                 SimProcess.Kill();
                 EPSuccessful = false;
@@ -544,7 +543,7 @@ namespace EnergyPlusLib
 
 
     }
-
+    /*
     public class DOE22SimFile
     {
         //Members.
@@ -1296,8 +1295,8 @@ namespace EnergyPlusLib
 
     }
 
+    */
 
- * */
 }
 
 

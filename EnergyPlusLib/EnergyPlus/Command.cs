@@ -206,8 +206,9 @@ namespace EnergyPlusLib
                 if (false == noComments)
                 {
                     comment = "!-" + argument.FieldName + units;
-                    if (argument.HasError)
+                    if (argument.Validate())
                     {
+                        argument.Validate();
                         comment += " -RANGE ERROR- ";
                     }
                 }

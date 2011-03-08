@@ -30,7 +30,7 @@ namespace EnergyPlus
     {
         static void Main(string[] args)
         {
-
+            /*
             //Doe test
             INPDatabase building = new INPDatabase();
             building.LoadInputFile(@"C:\XXX\T2408SamplePrelim.inp", "");
@@ -42,6 +42,7 @@ namespace EnergyPlus
             db.LoadDataSet();
             DataTable List = db.ListDataTables();
             DataTable Errors = db.LoadDataTable("Errors");
+             */
             IDFDatabase idf = new IDFDatabase();
             idf.WeatherFilePath = @"C:\EnergyPlusV6-0-0\WeatherData\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw";
             idf.SimulationEngineRootFolder = @"C:\EnergyPlusV6-0-0\";
@@ -67,6 +68,7 @@ namespace EnergyPlus
                 idf.ChangeSimulationControl();
                 idf.ChangeSimulationPeriod(1, 1, 12, 31);
                 idf.AddSQLiteOutput();
+
                 idf.RunSimulation();
             }
 
