@@ -17,11 +17,12 @@ namespace EnergyPlusLib.EnergyPlus
 
         #region Fields
         
-        private String _value;
+        public String _value;
         #endregion
         
         #region Properties
         public IDDField Field  { private set; get; }
+        public String RangeErrorMessage { private set; get; }
 
         public IDFDatabase IDF { private set; get; }
         public String FieldName
@@ -70,9 +71,12 @@ namespace EnergyPlusLib.EnergyPlus
         {
             set
             {
-                this._value = value;
-                this.HasValidationError = this.Validate(value);
-                this.UpdateObjectListReferences();
+                if (value != null)
+                {
+                    this._value = value.Trim();
+                    this.HasValidationError = this.Validate();
+                    this.UpdateObjectListReferences();
+                }
             }
 
             get { return this._value; }
@@ -107,7 +111,7 @@ namespace EnergyPlusLib.EnergyPlus
             //Check type if not null and if it is a required field..If it is blank and not required..leave the blank and don't do check.
             if ((String.IsNullOrEmpty(valuein)) && !this.Field.IsRequiredField())
             {
-                this._value = valuein;
+                this.Value = valuein;
             }
             else
             {
@@ -137,18 +141,20 @@ namespace EnergyPlusLib.EnergyPlus
                                   ivalue >= Convert.ToInt32(this.Field.RangeMinimum())))
                                 )
                             {
-                                this._value = ivalue.ToString();
+                                this.Value = ivalue.ToString();
                                 this.HasError = false;
                             }
                             else
                             {
                                 this.HasError = true;
+                                this.RangeErrorMessage = "Value is not within accepted range.";
                             }
                         }
                         catch (Exception)
                         {
                             //string value is not convertable to a double. 
                             this.HasError = true;
+                            this.RangeErrorMessage = "This is not a numeric value.";
                         }
                         break;
 
@@ -193,6 +199,7 @@ namespace EnergyPlusLib.EnergyPlus
                                 else
                                 {
                                     this.HasError = true;
+                                    this.RangeErrorMessage = "Value is not within accepted range.";
                                 }
                             }
 
@@ -202,7 +209,7 @@ namespace EnergyPlusLib.EnergyPlus
                                 this.HasError = true;
                             }
                         }
-                        this._value = valuein;
+                        this.Value = valuein;
                         break;
                     case "choice":
                         List<string> keys = this.Choices.ToList();
@@ -213,8 +220,13 @@ namespace EnergyPlusLib.EnergyPlus
                         else
                         {
                             this.HasError = true;
+                            this.RangeErrorMessage = "Value is not one of the choices ";
+                            foreach (string key in keys)
+                            {
+                                this.RangeErrorMessage += key + ", ";
+                            }
                         }
-                        this._value = valuein;
+                        this.Value = valuein;
                         break;
 
                     case "object-list":
@@ -231,15 +243,29 @@ namespace EnergyPlusLib.EnergyPlus
                             else
                             {
                                 this.HasError = true;
+                                this.RangeErrorMessage = "Value is not one of the choices ";
+                                foreach (string key in names)
+                                {
+                                    this.RangeErrorMessage += key + ", ";
+                                }
                             }
                         }
-                        this._value = valuein;
+                        this.Value = valuein;
                         break;
 
                     case "alpha":
                     default:
-                        this._value = valuein;
+                        this.Value = valuein;
                         break;
+                }
+            }
+
+            //check to see if this is actually a parameter value. 
+            if (this.HasError)
+            {
+                if (this._value.Contains("=$"))
+                {
+                    this.HasError = false;
                 }
             }
 

@@ -47,7 +47,7 @@ namespace EnergyPlus
             idf.WeatherFilePath = @"C:\EnergyPlusV6-0-0\WeatherData\USA_CA_San.Francisco.Intl.AP.724940_TMY3.epw";
             idf.SimulationEngineRootFolder = @"C:\EnergyPlusV6-0-0\";
             idf.LoadIDDFile(@"C:\EnergyPlusV6-0-0\Energy+.idd");
-            Program.RunFilesInFolder(@"C:\EnergyPlusV6-0-0\ExampleFiles\Testing");
+            Program.RunFilesInFolder(@"C:\EnergyPlusV6-0-0\ExampleFiles");
 
         }
 
@@ -55,6 +55,10 @@ namespace EnergyPlus
         static void RunFilesInFolder(string folder)
         {
 
+
+
+            if (Directory.Exists(folder))
+            {
             DirectoryInfo di = new DirectoryInfo(folder);
             FileInfo[] rgFiles = di.GetFiles("*.idf");
             foreach (FileInfo fi in rgFiles)
@@ -70,6 +74,13 @@ namespace EnergyPlus
                 idf.AddSQLiteOutput();
 
                 idf.RunSimulation();
+            }
+            }
+            else
+            {
+                Console.WriteLine("{0} is not a valid file or directory.", folder);
+                Console.WriteLine("Press any key to continue"); 
+                Console.Read();
             }
 
         }
