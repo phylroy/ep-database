@@ -107,18 +107,18 @@ namespace EnergyPlusLib.EnergyPlus
         }
         public Boolean Validate(String valuein)
         {
+            valuein = valuein.Trim();
             this.HasError = false;
             //Check type if not null and if it is a required field..If it is blank and not required..leave the blank and don't do check.
             if ((String.IsNullOrEmpty(valuein)) && !this.Field.IsRequiredField())
             {
-                this.Value = valuein;
+                this._value = valuein;
             }
             else
             {
                 switch (this.FieldType)
                 {
                     case "integer":
-
 
                         //Convert String to int. 
 
@@ -141,7 +141,7 @@ namespace EnergyPlusLib.EnergyPlus
                                   ivalue >= Convert.ToInt32(this.Field.RangeMinimum())))
                                 )
                             {
-                                this.Value = ivalue.ToString();
+                                this._value = ivalue.ToString();
                                 this.HasError = false;
                             }
                             else
@@ -209,7 +209,7 @@ namespace EnergyPlusLib.EnergyPlus
                                 this.HasError = true;
                             }
                         }
-                        this.Value = valuein;
+                        this._value = valuein;
                         break;
                     case "choice":
                         List<string> keys = this.Choices.ToList();
@@ -226,7 +226,7 @@ namespace EnergyPlusLib.EnergyPlus
                                 this.RangeErrorMessage += key + ", ";
                             }
                         }
-                        this.Value = valuein;
+                        this._value = valuein;
                         break;
 
                     case "object-list":
@@ -250,12 +250,12 @@ namespace EnergyPlusLib.EnergyPlus
                                 }
                             }
                         }
-                        this.Value = valuein;
+                        this._value = valuein;
                         break;
 
                     case "alpha":
                     default:
-                        this.Value = valuein;
+                        this._value = valuein;
                         break;
                 }
             }
