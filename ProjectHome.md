@@ -1,0 +1,1 @@
+A means of storing, searching and validating EnergyPlus files.
